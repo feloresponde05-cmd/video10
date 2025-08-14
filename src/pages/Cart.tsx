@@ -476,7 +476,14 @@ export function Cart() {
         <CheckoutModal
           isOpen={showCheckoutModal}
           onClose={() => setShowCheckoutModal(false)}
-          onConfirm={handleCheckout}
+          onCheckout={handleCheckout}
+          items={state.items.map(item => ({
+            id: item.id,
+            title: item.title,
+            price: calculateItemPrice(item),
+            quantity: 1
+          }))}
+          total={totalPrice}
         />
       </div>
     </div>
