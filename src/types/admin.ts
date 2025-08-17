@@ -1,3 +1,9 @@
+// Archivo generado automáticamente - Sistema TV a la Carta
+// Tipos y configuración del sistema administrativo
+// Última modificación: Sistema sincronizado con panel de control
+
+import React from 'react';
+
 export interface AdminConfig {
   pricing: {
     moviePrice: number;
@@ -32,12 +38,18 @@ export interface AdminState {
   config: AdminConfig;
 }
 
-export interface AdminAction {
-  type: 'UPDATE_PRICING' | 'ADD_NOVELA' | 'UPDATE_NOVELA' | 'DELETE_NOVELA' | 
-        'ADD_DELIVERY_ZONE' | 'UPDATE_DELIVERY_ZONE' | 'DELETE_DELIVERY_ZONE' | 
-        'TOGGLE_DELIVERY_ZONE' | 'LOAD_CONFIG' | 'LOG_IN' | 'LOG_OUT';
-  payload?: any;
-}
+export type AdminAction = 
+  | { type: 'UPDATE_PRICING'; payload: AdminConfig['pricing'] }
+  | { type: 'ADD_NOVELA'; payload: NovelasConfig }
+  | { type: 'UPDATE_NOVELA'; payload: NovelasConfig }
+  | { type: 'DELETE_NOVELA'; payload: number }
+  | { type: 'ADD_DELIVERY_ZONE'; payload: DeliveryZoneConfig }
+  | { type: 'UPDATE_DELIVERY_ZONE'; payload: DeliveryZoneConfig }
+  | { type: 'DELETE_DELIVERY_ZONE'; payload: number }
+  | { type: 'TOGGLE_DELIVERY_ZONE'; payload: number }
+  | { type: 'LOAD_CONFIG'; payload: AdminConfig }
+  | { type: 'LOG_IN' }
+  | { type: 'LOG_OUT' };
 
 export interface AdminContextType {
   state: AdminState;
@@ -58,7 +70,7 @@ export interface AdminContextType {
   getCurrentConfig: () => AdminConfig;
 }
 
-// Configuración por defecto del sistema
+// Configuración por defecto del sistema - Base inicial
 export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
   pricing: {
     moviePrice: 80,
@@ -73,7 +85,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 185,
       año: 2009,
       costoEfectivo: 925,
-      costoTransferencia: 1018
+      costoTransferencia: 1018,
+      descripcion: "Una apasionante historia de amor y venganza"
     },
     {
       id: 2,
@@ -82,7 +95,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 98,
       año: 1998,
       costoEfectivo: 490,
-      costoTransferencia: 539
+      costoTransferencia: 539,
+      descripcion: "La historia de dos mujeres idénticas con destinos opuestos"
     },
     {
       id: 3,
@@ -91,7 +105,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 73,
       año: 1995,
       costoEfectivo: 365,
-      costoTransferencia: 402
+      costoTransferencia: 402,
+      descripcion: "Una joven humilde que conquista el corazón de un millonario"
     },
     {
       id: 4,
@@ -100,7 +115,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 63,
       año: 1994,
       costoEfectivo: 315,
-      costoTransferencia: 347
+      costoTransferencia: 347,
+      descripcion: "La transformación de una joven de la playa en una mujer sofisticada"
     },
     {
       id: 5,
@@ -109,7 +125,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 80,
       año: 1999,
       costoEfectivo: 400,
-      costoTransferencia: 440
+      costoTransferencia: 440,
+      descripcion: "Una historia de amor que supera las diferencias sociales"
     },
     {
       id: 6,
@@ -118,7 +135,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 135,
       año: 2005,
       costoEfectivo: 675,
-      costoTransferencia: 743
+      costoTransferencia: 743,
+      descripcion: "Una mujer lucha por demostrar su inocencia"
     },
     {
       id: 7,
@@ -127,7 +145,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 115,
       año: 2004,
       costoEfectivo: 575,
-      costoTransferencia: 633
+      costoTransferencia: 633,
+      descripcion: "La ambición desmedida de una mujer hermosa"
     },
     {
       id: 8,
@@ -136,7 +155,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 188,
       año: 2003,
       costoEfectivo: 940,
-      costoTransferencia: 1034
+      costoTransferencia: 1034,
+      descripcion: "Tres hermanos buscan venganza pero encuentran el amor"
     },
     {
       id: 9,
@@ -145,7 +165,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 335,
       año: 1999,
       costoEfectivo: 1675,
-      costoTransferencia: 1843
+      costoTransferencia: 1843,
+      descripcion: "La transformación de una secretaria en una mujer exitosa"
     },
     {
       id: 10,
@@ -154,7 +175,8 @@ export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
       capitulos: 178,
       año: 2005,
       costoEfectivo: 890,
-      costoTransferencia: 979
+      costoTransferencia: 979,
+      descripcion: "Una historia sobrenatural de amor y reencarnación"
     }
   ],
   deliveryZones: [
