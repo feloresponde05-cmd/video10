@@ -43,16 +43,16 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
   const [generatedOrder, setGeneratedOrder] = useState('');
   const [copied, setCopied] = useState(false);
 
-  // Obtener configuración actual del admin
+  // Obtener configuración actual del admin (sincronizada)
   const currentConfig = getCurrentConfig();
   
-  // Get delivery zones from admin config (current applied configuration)
+  // Obtener zonas de entrega desde configuración actual aplicada
   const deliveryZones = currentConfig.deliveryZones.filter(zone => zone.active);
   const selectedZone = deliveryZones.find(zone => zone.fullPath === deliveryZone);
   const deliveryCost = selectedZone?.cost || 0;
   const finalTotal = total + deliveryCost;
 
-  // Validar si todos los campos requeridos están completos incluyendo la zona de entrega
+  // Validar formulario completo con zona de entrega
   const isFormValid = customerInfo.fullName.trim() !== '' && 
                      customerInfo.phone.trim() !== '' && 
                      customerInfo.address.trim() !== '' &&

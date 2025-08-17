@@ -24,10 +24,10 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
   const [showContactOptions, setShowContactOptions] = useState(false);
   const [showNovelList, setShowNovelList] = useState(false);
 
-  // Obtener configuración actual del admin
+  // Obtener configuración actual del admin (sincronizada)
   const currentConfig = getCurrentConfig();
   
-  // Get novelas from current admin config (applied configuration)
+  // Obtener novelas desde configuración actual aplicada
   const novelas: Novela[] = currentConfig.novelas.map(novela => ({
     id: novela.id,
     titulo: novela.titulo,
