@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, MapPin, Phone, Copy, Check, MessageCircle, Calculator, DollarSign, CreditCard } from 'lucide-react';
+import { useAdmin } from '../context/AdminContext';
 
 export interface CustomerInfo {
   fullName: string;
@@ -28,35 +29,8 @@ interface CheckoutModalProps {
   total: number;
 }
 
-// Zonas de entrega con costos
-const DELIVERY_ZONES = {
-  'Por favor seleccionar su Barrio/Zona': 0,
-  'Santiago de Cuba > Santiago de Cuba > Nuevo Vista Alegre': 100,
-  'Santiago de Cuba > Santiago de Cuba > Vista Alegre': 300,
-  'Santiago de Cuba > Santiago de Cuba > Reparto Sueño': 250,
-  'Santiago de Cuba > Santiago de Cuba > San Pedrito': 150,
-  'Santiago de Cuba > Santiago de Cuba > Altamira': 300,
-  'Santiago de Cuba > Santiago de Cuba > Micro 7, 8 , 9': 150,
-  'Santiago de Cuba > Santiago de Cuba > Alameda': 150,
-  'Santiago de Cuba > Santiago de Cuba > El Caney': 800,
-  'Santiago de Cuba > Santiago de Cuba > Quintero': 200,
-  'Santiago de Cuba > Santiago de Cuba > Marimon': 100,
-  'Santiago de Cuba > Santiago de Cuba > Los cangrejitos': 150,
-  'Santiago de Cuba > Santiago de Cuba > Trocha': 200,
-  'Santiago de Cuba > Santiago de Cuba > Versalles': 800,
-  'Santiago de Cuba > Santiago de Cuba > Reparto Portuondo': 600,
-  'Santiago de Cuba > Santiago de Cuba > 30 de Noviembre': 600,
-  'Santiago de Cuba > Santiago de Cuba > Rajayoga': 800,
-  'Santiago de Cuba > Santiago de Cuba > Antonio Maceo': 600,
-  'Santiago de Cuba > Santiago de Cuba > Los Pinos': 200,
-  'Santiago de Cuba > Santiago de Cuba > Distrito José Martí': 100,
-  'Santiago de Cuba > Santiago de Cuba > Cobre': 800,
-  'Santiago de Cuba > Santiago de Cuba > El Parque Céspedes': 200,
-  'Santiago de Cuba > Santiago de Cuba > Carretera del Morro': 300,
-
-};
-
 export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: CheckoutModalProps) {
+  const { state: adminState, getCurrentConfig } = useAdmin();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     fullName: '',
     phone: '',
@@ -69,7 +43,13 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
   const [generatedOrder, setGeneratedOrder] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const deliveryCost = DELIVERY_ZONES[deliveryZone as keyof typeof DELIVERY_ZONES] || 0;
+  // Obtener configuración actual del admin
+  const currentConfig = getCurrentConfig();
+  
+  // Get delivery zones from admin config (current applied configuration)
+  const deliveryZones = currentConfig.deliveryZones.filter(zone => zone.active);
+  const selectedZone = deliveryZones.find(zone => zone.fullPath === deliveryZone);
+  const deliveryCost = selectedZone?.cost || 0;
   const finalTotal = total + deliveryCost;
 
   // Validar si todos los campos requeridos están completos incluyendo la zona de entrega
@@ -97,13 +77,15 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
     const transferItems = items.filter(item => item.paymentType === 'transfer');
     
     const cashTotal = cashItems.reduce((sum, item) => {
-      const basePrice = item.type === 'movie' ? 80 : (item.selectedSeasons?.length || 1) * 300;
+      // Usar configuración actual del admin
+      const basePrice = item.type === 'movie' ? currentConfig.pricing.moviePrice : (item.selectedSeasons?.length || 1) * currentConfig.pricing.seriesPrice;
       return sum + basePrice;
     }, 0);
     
     const transferTotal = transferItems.reduce((sum, item) => {
-      const basePrice = item.type === 'movie' ? 80 : (item.selectedSeasons?.length || 1) * 300;
-      return sum + Math.round(basePrice * 1.1);
+      // Usar configuración actual del admin
+      const basePrice = item.type === 'movie' ? currentConfig.pricing.moviePrice : (item.selectedSeasons?.length || 1) * currentConfig.pricing.seriesPrice;
+      return sum + Math.round(basePrice * (1 + currentConfig.pricing.transferFeePercentage / 100));
     }, 0);
     
     return { cashTotal, transferTotal };
@@ -112,8 +94,9 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
   const generateOrderText = () => {
     const orderId = generateOrderId();
     const { cashTotal, transferTotal } = calculateTotals();
+    
     const transferFee = transferTotal - items.filter(item => item.paymentType === 'transfer').reduce((sum, item) => {
-      const basePrice = item.type === 'movie' ? 80 : (item.selectedSeasons?.length || 1) * 300;
+      const basePrice = item.type === 'movie' ? currentConfig.pricing.moviePrice : (item.selectedSeasons?.length || 1) * currentConfig.pricing.seriesPrice;
       return sum + basePrice;
     }, 0);
 
@@ -124,9 +107,9 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
           ? `\n  📺 Temporadas: ${item.selectedSeasons.sort((a, b) => a - b).join(', ')}` 
           : '';
         const itemType = item.type === 'movie' ? 'Película' : 'Serie';
-        const basePrice = item.type === 'movie' ? 80 : (item.selectedSeasons?.length || 1) * 300;
-        const finalPrice = item.paymentType === 'transfer' ? Math.round(basePrice * 1.1) : basePrice;
-        const paymentTypeText = item.paymentType === 'transfer' ? 'Transferencia (+10%)' : 'Efectivo';
+        const basePrice = item.type === 'movie' ? currentConfig.pricing.moviePrice : (item.selectedSeasons?.length || 1) * currentConfig.pricing.seriesPrice;
+        const finalPrice = item.paymentType === 'transfer' ? Math.round(basePrice * (1 + currentConfig.pricing.transferFeePercentage / 100)) : basePrice;
+        const paymentTypeText = item.paymentType === 'transfer' ? `Transferencia (+${currentConfig.pricing.transferFeePercentage}%)` : 'Efectivo';
         const emoji = item.type === 'movie' ? '🎬' : '📺';
         return `${emoji} *${item.title}*${seasonInfo}\n  📋 Tipo: ${itemType}\n  💳 Pago: ${paymentTypeText}\n  💰 Precio: $${finalPrice.toLocaleString()} CUP`;
       })
@@ -153,10 +136,10 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
     orderText += `• *Subtotal Contenido: $${total.toLocaleString()} CUP*\n`;
     
     if (transferFee > 0) {
-      orderText += `• Recargo transferencia (10%): +$${transferFee.toLocaleString()} CUP\n`;
+      orderText += `• Recargo transferencia (${currentConfig.pricing.transferFeePercentage}%): +$${transferFee.toLocaleString()} CUP\n`;
     }
     
-    orderText += `🚚 Entrega (${deliveryZone.split(' > ')[2]}): +$${deliveryCost.toLocaleString()} CUP\n`;
+    orderText += `🚚 Entrega (${selectedZone?.name || 'Zona desconocida'}): +$${deliveryCost.toLocaleString()} CUP\n`;
     orderText += `\n🎯 *TOTAL FINAL: $${finalTotal.toLocaleString()} CUP*\n\n`;
     
     orderText += `📍 *ZONA DE ENTREGA:*\n`;
@@ -203,8 +186,9 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
     try {
       const { orderId } = generateOrderText();
       const { cashTotal, transferTotal } = calculateTotals();
+      
       const transferFee = transferTotal - items.filter(item => item.paymentType === 'transfer').reduce((sum, item) => {
-        const basePrice = item.type === 'movie' ? 80 : (item.selectedSeasons?.length || 1) * 300;
+        const basePrice = item.type === 'movie' ? currentConfig.pricing.moviePrice : (item.selectedSeasons?.length || 1) * currentConfig.pricing.seriesPrice;
         return sum + basePrice;
       }, 0);
 
@@ -244,6 +228,7 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold">Finalizar Pedido</h2>
                 <p className="text-sm opacity-90">Complete sus datos para procesar el pedido</p>
+                <p className="text-xs opacity-75">Precios: Película ${currentConfig.pricing.moviePrice} CUP | Serie ${currentConfig.pricing.seriesPrice} CUP/temp | Transferencia +{currentConfig.pricing.transferFeePercentage}%</p>
               </div>
             </div>
             <button
@@ -282,7 +267,7 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
                     </div>
                     <div className="text-sm text-gray-600">Costo de Entrega</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {deliveryZone.split(' > ')[2] || 'Seleccionar zona'}
+                      {selectedZone?.name || 'Seleccionar zona'}
                     </div>
                   </div>
                 </div>
@@ -367,7 +352,7 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
                       <h4 className="font-semibold text-green-900">Información de Entrega</h4>
                     </div>
                     <p className="text-sm text-green-700 ml-11">
-                      Seleccione su zona para calcular el costo de entrega. Los precios pueden variar según la distancia.
+                      Seleccione su zona para calcular el costo de entrega. {deliveryZones.length} zonas disponibles.
                     </p>
                   </div>
                   
@@ -385,11 +370,11 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
                           : 'border-gray-300 focus:ring-green-500'
                       }`}
                     >
-                      {Object.entries(DELIVERY_ZONES).map(([zone, cost]) => (
-                        <option key={zone} value={zone}>
-                          {zone === 'Por favor seleccionar su Barrio/Zona' 
-                            ? zone 
-                            : `${zone.split(' > ')[2]} ${cost > 0 ? `- $${cost.toLocaleString()} CUP` : ''}`
+                      {deliveryZones.map((zone) => (
+                        <option key={zone.id} value={zone.fullPath}>
+                          {zone.fullPath === 'Por favor seleccionar su Barrio/Zona' 
+                            ? zone.fullPath 
+                            : `${zone.name} ${zone.cost > 0 ? `- $${zone.cost.toLocaleString()} CUP` : ''}`
                           }
                         </option>
                       ))}
@@ -424,7 +409,7 @@ export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: Che
                           </div>
                         </div>
                         <div className="text-xs text-green-600 ml-11">
-                          ✅ Zona: {deliveryZone.split(' > ')[2]}
+                          ✅ Zona: {selectedZone?.name}
                         </div>
                       </div>
                     )}
