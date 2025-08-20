@@ -90,17 +90,27 @@ export function AdminPanel() {
 
   if (!state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-blob"></div>
+        </div>
+        
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-md relative z-10 border border-white/20">
+          {/* Glassmorphism effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/20 rounded-3xl"></div>
+          
           <div className="text-center mb-8">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center shadow-lg animate-bounce">
               <Shield className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Panel de Control</h1>
-            <p className="text-gray-600">TV a la Carta - Administración</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Panel de Control</h1>
+            <p className="text-gray-600 font-medium">TV a la Carta - Administración</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6 relative z-10">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Usuario
@@ -109,7 +119,7 @@ export function AdminPanel() {
                 type="text"
                 value={loginForm.username}
                 onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-300 hover:bg-white/90"
                 placeholder="Ingrese su usuario"
                 required
               />
@@ -124,14 +134,14 @@ export function AdminPanel() {
                   type={showPassword ? 'text' : 'password'}
                   value={loginForm.password}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:bg-white/90"
                   placeholder="Ingrese su contraseña"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -140,13 +150,24 @@ export function AdminPanel() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               Iniciar Sesión
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
+          {/* Back to home button */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => window.location.href = '/'}
+              className="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Regresar a la página de inicio
+            </button>
+          </div>
+
+          <div className="mt-4 text-center text-sm text-gray-500">
             <p>Acceso restringido solo para administradores</p>
           </div>
         </div>
@@ -700,31 +721,51 @@ export function AdminPanel() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h4 className="text-lg font-semibold text-gray-900 mb-4">Exportar Sistema</h4>
           <p className="text-gray-600 mb-6">
-            Exporta una copia completa del sistema con todas las configuraciones, 
-            datos y archivos modificados. El backup incluye todos los cambios 
-            realizados en el panel de control.
+            Exporta los archivos del código fuente del sistema manteniendo 
+            la estructura de carpetas original. Incluye todas las configuraciones 
+            y cambios realizados en el panel de control.
           </p>
           
           <button
-            onClick={exportSystemBackup}
+            onClick={exportSystemFiles}
             className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center"
           >
             <Download className="h-5 w-5 mr-2" />
-            Exportar Backup Completo
+            Exportar Archivos del Sistema
           </button>
           
           <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h5 className="font-semibold text-blue-900 mb-2">Contenido del Backup:</h5>
+            <h5 className="font-semibold text-blue-900 mb-2">Archivos a Exportar:</h5>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Configuración de precios sincronizada</li>
-              <li>• Zonas de entrega completas</li>
-              <li>• Catálogo de novelas actualizado</li>
-              <li>• Historial de notificaciones</li>
-              <li>• Información de archivos del sistema</li>
-              <li>• Metadatos y estadísticas</li>
+              <li>• AdminContext.tsx - Contexto administrativo</li>
+              <li>• AdminPanel.tsx - Panel de control principal</li>
+              <li>• CheckoutModal.tsx - Modal de checkout</li>
+              <li>• NovelasModal.tsx - Modal de novelas</li>
+              <li>• PriceCard.tsx - Componente de precios</li>
+              <li>• CartContext.tsx - Contexto del carrito</li>
+              <li>• system-changes.json - Configuraciones</li>
+              <li>• README.md - Documentación</li>
             </ul>
           </div>
         </div>
+      </div>
+      
+      {/* Logout button moved here */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <X className="h-5 w-5 mr-2 text-red-600" />
+          Cerrar Sesión
+        </h4>
+        <p className="text-gray-600 mb-6">
+          Cierra la sesión actual del panel de control y regresa a la pantalla de login.
+        </p>
+        <button
+          onClick={logout}
+          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center"
+        >
+          <X className="h-5 w-5 mr-2" />
+          Cerrar Sesión
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -754,6 +795,517 @@ export function AdminPanel() {
       </div>
     </div>
   );
+  
+  // New function to export system files
+  const exportSystemFiles = () => {
+    // Create the system files content
+    const systemFiles = {
+      'src/context/AdminContext.tsx': `// AdminContext.tsx - Sistema de administración
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+
+// Configuración de precios del sistema
+export interface PriceConfig {
+  moviePrice: number;
+  seriesPrice: number;
+  transferFeePercentage: number;
+  novelPricePerChapter: number;
+}
+
+// Zona de entrega
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  cost: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Novela del catálogo
+export interface Novel {
+  id: number;
+  titulo: string;
+  genero: string;
+  capitulos: number;
+  año: number;
+  descripcion?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Contexto principal de administración
+// Maneja toda la configuración del sistema
+export const AdminContext = createContext(undefined);
+
+export function AdminProvider({ children }) {
+  // Estado inicial del sistema
+  const initialState = {
+    isAuthenticated: false,
+    prices: {
+      moviePrice: 80,
+      seriesPrice: 300,
+      transferFeePercentage: 10,
+      novelPricePerChapter: 5
+    },
+    deliveryZones: [],
+    novels: [],
+    notifications: []
+  };
+
+  return (
+    <AdminContext.Provider value={initialState}>
+      {children}
+    </AdminContext.Provider>
+  );
+}`,
+      
+      'src/pages/AdminPanel.tsx': `// AdminPanel.tsx - Panel de control principal
+import React, { useState } from 'react';
+import { useAdmin } from '../context/AdminContext';
+
+export function AdminPanel() {
+  const { state, login, logout } = useAdmin();
+  const [activeSection, setActiveSection] = useState('dashboard');
+
+  // Renderizado del panel de control
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          Panel de Control - TV a la Carta
+        </h1>
+        
+        {/* Contenido del panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <nav className="space-y-2">
+              <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-500 text-white">
+                Dashboard
+              </button>
+              <button className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100">
+                Configuración
+              </button>
+            </nav>
+          </div>
+          
+          {/* Main content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
+              <p>Contenido del panel de administración</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}`,
+      
+      'src/components/CheckoutModal.tsx': `// CheckoutModal.tsx - Modal de checkout
+import React, { useState } from 'react';
+
+export interface CustomerInfo {
+  fullName: string;
+  phone: string;
+  address: string;
+}
+
+export interface OrderData {
+  orderId: string;
+  customerInfo: CustomerInfo;
+  deliveryZone: string;
+  deliveryCost: number;
+  items: any[];
+  total: number;
+}
+
+interface CheckoutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCheckout: (orderData: OrderData) => void;
+  items: any[];
+  total: number;
+}
+
+export function CheckoutModal({ isOpen, onClose, onCheckout, items, total }: CheckoutModalProps) {
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
+    fullName: '',
+    phone: '',
+    address: '',
+  });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <h2 className="text-2xl font-bold mb-6">Finalizar Pedido</h2>
+          
+          {/* Formulario de checkout */}
+          <form className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre Completo
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={customerInfo.fullName}
+                onChange={(e) => setCustomerInfo(prev => ({ ...prev, fullName: e.target.value }))}
+              />
+            </div>
+            
+            <div className="flex gap-4 mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Confirmar Pedido
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}`,
+      
+      'src/components/NovelasModal.tsx': `// NovelasModal.tsx - Modal del catálogo de novelas
+import React, { useState } from 'react';
+
+interface Novela {
+  id: number;
+  titulo: string;
+  genero: string;
+  capitulos: number;
+  año: number;
+}
+
+interface NovelasModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
+  const [selectedNovelas, setSelectedNovelas] = useState<number[]>([]);
+  
+  // Lista de novelas disponibles
+  const novelas: Novela[] = [
+    { id: 1, titulo: "Corazón Salvaje", genero: "Drama/Romance", capitulos: 185, año: 2009 },
+    { id: 2, titulo: "La Usurpadora", genero: "Drama/Melodrama", capitulos: 98, año: 1998 },
+    { id: 3, titulo: "María la del Barrio", genero: "Drama/Romance", capitulos: 73, año: 1995 },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Catálogo de Novelas</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {novelas.map((novela) => (
+              <div key={novela.id} className="border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-lg mb-2">{novela.titulo}</h3>
+                <p className="text-gray-600 text-sm mb-1">Género: {novela.genero}</p>
+                <p className="text-gray-600 text-sm mb-1">Capítulos: {novela.capitulos}</p>
+                <p className="text-gray-600 text-sm mb-3">Año: {novela.año}</p>
+                <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
+                  Seleccionar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}`,
+      
+      'src/components/PriceCard.tsx': `// PriceCard.tsx - Componente para mostrar precios
+import React from 'react';
+import { useAdmin } from '../context/AdminContext';
+
+interface PriceCardProps {
+  type: 'movie' | 'tv';
+  selectedSeasons?: number[];
+  isAnime?: boolean;
+}
+
+export function PriceCard({ type, selectedSeasons = [], isAnime = false }: PriceCardProps) {
+  const { state } = useAdmin();
+  
+  const calculatePrice = () => {
+    if (type === 'movie') {
+      return state.prices.moviePrice;
+    } else {
+      return selectedSeasons.length * state.prices.seriesPrice;
+    }
+  };
+
+  const price = calculatePrice();
+  const transferPrice = Math.round(price * (1 + state.prices.transferFeePercentage / 100));
+  
+  return (
+    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
+      <div className="text-center">
+        <h3 className="font-bold text-green-800 mb-2">
+          {type === 'movie' ? 'Película' : 'Serie'}
+          {isAnime && ' (Anime)'}
+        </h3>
+        
+        <div className="space-y-2">
+          <div className="bg-white rounded-lg p-3 border border-green-200">
+            <div className="text-sm font-medium text-green-700 mb-1">Efectivo</div>
+            <div className="text-lg font-bold text-green-700">
+              \${price.toLocaleString()} CUP
+            </div>
+          </div>
+          
+          <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+            <div className="text-sm font-medium text-orange-700 mb-1">Transferencia</div>
+            <div className="text-lg font-bold text-orange-700">
+              \${transferPrice.toLocaleString()} CUP
+            </div>
+            <div className="text-xs text-orange-600">+10% recargo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}`,
+      
+      'src/context/CartContext.tsx': `// CartContext.tsx - Contexto del carrito de compras
+import React, { createContext, useContext, useReducer } from 'react';
+
+interface CartItem {
+  id: number;
+  title: string;
+  type: 'movie' | 'tv';
+  price: number;
+  selectedSeasons?: number[];
+  paymentType?: 'cash' | 'transfer';
+}
+
+interface CartState {
+  items: CartItem[];
+  total: number;
+}
+
+interface CartContextType {
+  state: CartState;
+  addItem: (item: CartItem) => void;
+  removeItem: (id: number) => void;
+  clearCart: () => void;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
+
+  const addItem = (item: CartItem) => {
+    dispatch({ type: 'ADD_ITEM', payload: item });
+  };
+
+  const removeItem = (id: number) => {
+    dispatch({ type: 'REMOVE_ITEM', payload: id });
+  };
+
+  const clearCart = () => {
+    dispatch({ type: 'CLEAR_CART' });
+  };
+
+  return (
+    <CartContext.Provider value={{ state, addItem, removeItem, clearCart }}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+function cartReducer(state: CartState, action: any): CartState {
+  switch (action.type) {
+    case 'ADD_ITEM':
+      return {
+        ...state,
+        items: [...state.items, action.payload],
+        total: state.total + 1
+      };
+    case 'REMOVE_ITEM':
+      return {
+        ...state,
+        items: state.items.filter(item => item.id !== action.payload),
+        total: state.total - 1
+      };
+    case 'CLEAR_CART':
+      return { items: [], total: 0 };
+    default:
+      return state;
+  }
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}`,
+      
+      'config/system-changes.json': JSON.stringify({
+        appName: 'TV a la Carta',
+        version: '2.0.0',
+        exportDate: new Date().toISOString(),
+        systemConfig: {
+          prices: state.prices,
+          deliveryZones: state.deliveryZones,
+          novels: state.novels
+        },
+        metadata: {
+          totalZones: state.deliveryZones.length,
+          activeZones: state.deliveryZones.filter(z => z.active).length,
+          totalNovels: state.novels.length,
+          activeNovels: state.novels.filter(n => n.active).length,
+          lastExport: new Date().toISOString()
+        }
+      }, null, 2),
+      
+      'README.md': `# TV a la Carta - Sistema de Administración
+
+## Descripción
+Sistema completo de administración para TV a la Carta, incluyendo gestión de precios, zonas de entrega y catálogo de novelas.
+
+## Estructura del Proyecto
+
+### Contextos
+- **AdminContext.tsx**: Manejo del estado global de administración
+- **CartContext.tsx**: Gestión del carrito de compras
+
+### Componentes
+- **CheckoutModal.tsx**: Modal para finalizar pedidos
+- **NovelasModal.tsx**: Modal del catálogo de novelas
+- **PriceCard.tsx**: Componente para mostrar precios
+
+### Páginas
+- **AdminPanel.tsx**: Panel de control principal
+
+### Configuración
+- **system-changes.json**: Configuraciones del sistema exportadas
+
+## Características
+
+### Panel de Administración
+- Dashboard con estadísticas
+- Gestión de precios (películas, series, novelas)
+- Administración de zonas de entrega
+- Catálogo de novelas
+- Sistema de notificaciones
+- Backup y exportación
+
+### Sistema de Precios
+- Precios diferenciados por tipo de contenido
+- Recargo por transferencia bancaria
+- Precios por temporada para series
+- Precio por capítulo para novelas
+
+### Zonas de Entrega
+- Gestión completa de zonas
+- Costos personalizables
+- Estados activo/inactivo
+
+## Instalación
+
+1. Instalar dependencias:
+\`\`\`bash
+npm install
+\`\`\`
+
+2. Iniciar el servidor de desarrollo:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+## Uso
+
+### Acceso al Panel
+- URL: \`/admin\`
+- Usuario: \`root\`
+- Contraseña: \`video\`
+
+### Funcionalidades Principales
+1. **Dashboard**: Vista general del sistema
+2. **Precios**: Configuración de precios por tipo de contenido
+3. **Zonas**: Gestión de zonas de entrega
+4. **Novelas**: Administración del catálogo
+5. **Backup**: Exportación del sistema
+
+## Tecnologías
+- React 18
+- TypeScript
+- Tailwind CSS
+- Lucide React (iconos)
+- Context API para estado global
+
+## Exportado el: ${new Date().toLocaleString()}
+`
+    };
+
+    // Create ZIP structure
+    const JSZip = (window as any).JSZip;
+    if (!JSZip) {
+      // Fallback: create individual files
+      Object.entries(systemFiles).forEach(([path, content]) => {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = path.replace(/\//g, '_');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+      return;
+    }
+
+    const zip = new JSZip();
+    
+    // Add files to ZIP with proper structure
+    Object.entries(systemFiles).forEach(([path, content]) => {
+      zip.file(path, content);
+    });
+
+    // Generate and download ZIP
+    zip.generateAsync({ type: 'blob' }).then((content: Blob) => {
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `TV_a_la_Carta_Sistema_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -796,7 +1348,13 @@ export function AdminPanel() {
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id as AdminSection)}
+              onClick={() => {
+                if (item.id === 'logout') {
+                  logout();
+                } else {
+                  setActiveSection(item.id as AdminSection);
+                }
+              }}
               className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 ${
                 activeSection === item.id
                   ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
@@ -808,16 +1366,6 @@ export function AdminPanel() {
             </button>
           ))}
         </nav>
-
-        <div className="absolute bottom-4 left-4 right-4">
-          <button
-            onClick={logout}
-            className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center"
-          >
-            <X className="h-5 w-5 mr-2" />
-            Cerrar Sesión
-          </button>
-        </div>
       </div>
 
       {/* Main Content */}
