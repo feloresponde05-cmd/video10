@@ -1,791 +1,489 @@
-// Archivo generado automáticamente el 2025-08-17T16:37:05.196Z
-// AdminContext con configuración actual aplicada y todas las funciones implementadas
-
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import type { 
-  AdminConfig, 
-  AdminState, 
-  NovelasConfig, 
-  DeliveryZoneConfig, 
-  AdminAction,
-  AdminContextType
-} from '../types/admin';
 
-// Configuración actual aplicada desde el panel de control
-const currentAppliedConfig: AdminConfig = {
-  "pricing": {
-    "moviePrice": 90,
-    "seriesPrice": 350,
-    "transferFeePercentage": 15
+export interface PriceConfig {
+  moviePrice: number;
+  seriesPrice: number;
+  transferFeePercentage: number;
+  novelPricePerChapter: number;
+}
+
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  cost: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Novel {
+  id: number;
+  titulo: string;
+  genero: string;
+  capitulos: number;
+  año: number;
+  descripcion?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SystemFile {
+  name: string;
+  path: string;
+  lastModified: string;
+  size: number;
+  type: 'component' | 'service' | 'context' | 'page' | 'config';
+  description: string;
+}
+
+interface AdminState {
+  isAuthenticated: boolean;
+  prices: PriceConfig;
+  deliveryZones: DeliveryZone[];
+  novels: Novel[];
+  systemFiles: SystemFile[];
+  notifications: AdminNotification[];
+  lastBackup: string | null;
+}
+
+export interface AdminNotification {
+  id: string;
+  type: 'success' | 'warning' | 'error' | 'info';
+  title: string;
+  message: string;
+  timestamp: string;
+  section: string;
+  action: string;
+}
+
+type AdminAction = 
+  | { type: 'LOGIN'; payload: boolean }
+  | { type: 'LOGOUT' }
+  | { type: 'UPDATE_PRICES'; payload: PriceConfig }
+  | { type: 'ADD_DELIVERY_ZONE'; payload: DeliveryZone }
+  | { type: 'UPDATE_DELIVERY_ZONE'; payload: DeliveryZone }
+  | { type: 'DELETE_DELIVERY_ZONE'; payload: string }
+  | { type: 'ADD_NOVEL'; payload: Novel }
+  | { type: 'UPDATE_NOVEL'; payload: Novel }
+  | { type: 'DELETE_NOVEL'; payload: number }
+  | { type: 'ADD_NOTIFICATION'; payload: AdminNotification }
+  | { type: 'CLEAR_NOTIFICATIONS' }
+  | { type: 'UPDATE_SYSTEM_FILES'; payload: SystemFile[] }
+  | { type: 'SET_LAST_BACKUP'; payload: string }
+  | { type: 'LOAD_ADMIN_DATA'; payload: Partial<AdminState> };
+
+interface AdminContextType {
+  state: AdminState;
+  login: (username: string, password: string) => boolean;
+  logout: () => void;
+  updatePrices: (prices: PriceConfig) => void;
+  addDeliveryZone: (zone: Omit<DeliveryZone, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateDeliveryZone: (zone: DeliveryZone) => void;
+  deleteDeliveryZone: (id: string) => void;
+  addNovel: (novel: Omit<Novel, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateNovel: (novel: Novel) => void;
+  deleteNovel: (id: number) => void;
+  addNotification: (notification: Omit<AdminNotification, 'id' | 'timestamp'>) => void;
+  clearNotifications: () => void;
+  exportSystemBackup: () => void;
+  getSystemFiles: () => SystemFile[];
+}
+
+export const AdminContext = createContext<AdminContextType | undefined>(undefined);
+
+const initialState: AdminState = {
+  isAuthenticated: false,
+  prices: {
+    moviePrice: 80,
+    seriesPrice: 300,
+    transferFeePercentage: 10,
+    novelPricePerChapter: 5
   },
-  "novelas": [
+  deliveryZones: [
     {
-      "id": 1,
-      "titulo": "Corazón Salvaje 234",
-      "genero": "Drama/Romance",
-      "capitulos": 185,
-      "año": 2009,
-      "costoEfectivo": 925,
-      "costoTransferencia": 1018,
-      "descripcion": "Una apasionante historia de amor y venganza"
+      id: '1',
+      name: 'Santiago de Cuba > Santiago de Cuba > Nuevo Vista Alegre',
+      cost: 100,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     },
     {
-      "id": 2,
-      "titulo": "La Usurpadora",
-      "genero": "Drama/Melodrama",
-      "capitulos": 98,
-      "año": 1998,
-      "costoEfectivo": 490,
-      "costoTransferencia": 539,
-      "descripcion": "La historia de dos mujeres idénticas con destinos opuestos"
-    },
-    {
-      "id": 3,
-      "titulo": "María la del Barrio",
-      "genero": "Drama/Romance",
-      "capitulos": 73,
-      "año": 1995,
-      "costoEfectivo": 365,
-      "costoTransferencia": 402,
-      "descripcion": "Una joven humilde que conquista el corazón de un millonario"
-    },
-    {
-      "id": 4,
-      "titulo": "Marimar",
-      "genero": "Drama/Romance",
-      "capitulos": 63,
-      "año": 1994,
-      "costoEfectivo": 315,
-      "costoTransferencia": 347,
-      "descripcion": "La transformación de una joven de la playa en una mujer sofisticada"
-    },
-    {
-      "id": 5,
-      "titulo": "Rosalinda",
-      "genero": "Drama/Romance",
-      "capitulos": 80,
-      "año": 1999,
-      "costoEfectivo": 400,
-      "costoTransferencia": 440,
-      "descripcion": "Una historia de amor que supera las diferencias sociales"
-    },
-    {
-      "id": 6,
-      "titulo": "La Madrastra",
-      "genero": "Drama/Suspenso",
-      "capitulos": 135,
-      "año": 2005,
-      "costoEfectivo": 675,
-      "costoTransferencia": 743,
-      "descripcion": "Una mujer lucha por demostrar su inocencia"
-    },
-    {
-      "id": 7,
-      "titulo": "Rubí",
-      "genero": "Drama/Melodrama",
-      "capitulos": 115,
-      "año": 2004,
-      "costoEfectivo": 575,
-      "costoTransferencia": 633,
-      "descripcion": "La ambición desmedida de una mujer hermosa"
-    },
-    {
-      "id": 8,
-      "titulo": "Pasión de Gavilanes",
-      "genero": "Drama/Romance",
-      "capitulos": 188,
-      "año": 2003,
-      "costoEfectivo": 940,
-      "costoTransferencia": 1034,
-      "descripcion": "Tres hermanos buscan venganza pero encuentran el amor"
-    },
-    {
-      "id": 9,
-      "titulo": "Yo Soy Betty, la Fea",
-      "genero": "Comedia/Romance",
-      "capitulos": 335,
-      "año": 1999,
-      "costoEfectivo": 1675,
-      "costoTransferencia": 1843,
-      "descripcion": "La transformación de una secretaria en una mujer exitosa"
-    },
-    {
-      "id": 10,
-      "titulo": "El Cuerpo del Deseo",
-      "genero": "Drama/Fantasía",
-      "capitulos": 178,
-      "año": 2005,
-      "costoEfectivo": 890,
-      "costoTransferencia": 979,
-      "descripcion": "Una historia sobrenatural de amor y reencarnación"
+      id: '2',
+      name: 'Santiago de Cuba > Santiago de Cuba > Vista Alegre',
+      cost: 300,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
   ],
-  "deliveryZones": [
-    {
-      "id": 1,
-      "name": "Por favor seleccionar su Barrio/Zona",
-      "fullPath": "Por favor seleccionar su Barrio/Zona",
-      "cost": 0,
-      "active": true
-    },
-    {
-      "id": 2,
-      "name": "Nuevo Vista Alegre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Nuevo Vista Alegre",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 3,
-      "name": "Vista Alegre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Vista Alegre",
-      "cost": 300,
-      "active": true
-    },
-    {
-      "id": 4,
-      "name": "Reparto Sueño",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Reparto Sueño",
-      "cost": 250,
-      "active": true
-    },
-    {
-      "id": 5,
-      "name": "San Pedrito",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > San Pedrito",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 6,
-      "name": "Altamira",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Altamira",
-      "cost": 300,
-      "active": true
-    },
-    {
-      "id": 7,
-      "name": "Micro 7, 8 , 9",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Micro 7, 8 , 9",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 8,
-      "name": "Alameda",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Alameda",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 9,
-      "name": "El Caney",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > El Caney",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 10,
-      "name": "Quintero",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Quintero",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 11,
-      "name": "Marimon",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Marimon",
-      "cost": 100,
-      "active": true
-    },
-    {
-      "id": 12,
-      "name": "Los cangrejitos",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Los cangrejitos",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 13,
-      "name": "Trocha",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Trocha",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 14,
-      "name": "Versalles",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Versalles",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 15,
-      "name": "Reparto Portuondo",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Reparto Portuondo",
-      "cost": 600,
-      "active": true
-    },
-    {
-      "id": 16,
-      "name": "30 de Noviembre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > 30 de Noviembre",
-      "cost": 600,
-      "active": true
-    },
-    {
-      "id": 17,
-      "name": "Rajayoga",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Rajayoga",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 18,
-      "name": "Antonio Maceo",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Antonio Maceo",
-      "cost": 600,
-      "active": true
-    },
-    {
-      "id": 19,
-      "name": "Los Pinos",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Los Pinos",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 20,
-      "name": "Distrito José Martí",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Distrito José Martí",
-      "cost": 100,
-      "active": true
-    },
-    {
-      "id": 21,
-      "name": "Cobre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Cobre",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 22,
-      "name": "El Parque Céspedes",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > El Parque Céspedes",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 23,
-      "name": "Carretera del Morro",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Carretera del Morro",
-      "cost": 300,
-      "active": true
-    }
-  ]
+  novels: [],
+  systemFiles: [],
+  notifications: [],
+  lastBackup: null
 };
 
-// Configuración por defecto del sistema
-const defaultConfig: AdminConfig = {
-  "pricing": {
-    "moviePrice": 80,
-    "seriesPrice": 300,
-    "transferFeePercentage": 10
-  },
-  "novelas": [
-    {
-      "id": 1,
-      "titulo": "Corazón Salvaje",
-      "genero": "Drama/Romance",
-      "capitulos": 185,
-      "año": 2009,
-      "costoEfectivo": 925,
-      "costoTransferencia": 1018,
-      "descripcion": "Una apasionante historia de amor y venganza"
-    },
-    {
-      "id": 2,
-      "titulo": "La Usurpadora",
-      "genero": "Drama/Melodrama",
-      "capitulos": 98,
-      "año": 1998,
-      "costoEfectivo": 490,
-      "costoTransferencia": 539,
-      "descripcion": "La historia de dos mujeres idénticas con destinos opuestos"
-    },
-    {
-      "id": 3,
-      "titulo": "María la del Barrio",
-      "genero": "Drama/Romance",
-      "capitulos": 73,
-      "año": 1995,
-      "costoEfectivo": 365,
-      "costoTransferencia": 402,
-      "descripcion": "Una joven humilde que conquista el corazón de un millonario"
-    },
-    {
-      "id": 4,
-      "titulo": "Marimar",
-      "genero": "Drama/Romance",
-      "capitulos": 63,
-      "año": 1994,
-      "costoEfectivo": 315,
-      "costoTransferencia": 347,
-      "descripcion": "La transformación de una joven de la playa en una mujer sofisticada"
-    },
-    {
-      "id": 5,
-      "titulo": "Rosalinda",
-      "genero": "Drama/Romance",
-      "capitulos": 80,
-      "año": 1999,
-      "costoEfectivo": 400,
-      "costoTransferencia": 440,
-      "descripcion": "Una historia de amor que supera las diferencias sociales"
-    },
-    {
-      "id": 6,
-      "titulo": "La Madrastra",
-      "genero": "Drama/Suspenso",
-      "capitulos": 135,
-      "año": 2005,
-      "costoEfectivo": 675,
-      "costoTransferencia": 743,
-      "descripcion": "Una mujer lucha por demostrar su inocencia"
-    },
-    {
-      "id": 7,
-      "titulo": "Rubí",
-      "genero": "Drama/Melodrama",
-      "capitulos": 115,
-      "año": 2004,
-      "costoEfectivo": 575,
-      "costoTransferencia": 633,
-      "descripcion": "La ambición desmedida de una mujer hermosa"
-    },
-    {
-      "id": 8,
-      "titulo": "Pasión de Gavilanes",
-      "genero": "Drama/Romance",
-      "capitulos": 188,
-      "año": 2003,
-      "costoEfectivo": 940,
-      "costoTransferencia": 1034,
-      "descripcion": "Tres hermanos buscan venganza pero encuentran el amor"
-    },
-    {
-      "id": 9,
-      "titulo": "Yo Soy Betty, la Fea",
-      "genero": "Comedia/Romance",
-      "capitulos": 335,
-      "año": 1999,
-      "costoEfectivo": 1675,
-      "costoTransferencia": 1843,
-      "descripcion": "La transformación de una secretaria en una mujer exitosa"
-    },
-    {
-      "id": 10,
-      "titulo": "El Cuerpo del Deseo",
-      "genero": "Drama/Fantasía",
-      "capitulos": 178,
-      "año": 2005,
-      "costoEfectivo": 890,
-      "costoTransferencia": 979,
-      "descripcion": "Una historia sobrenatural de amor y reencarnación"
-    }
-  ],
-  "deliveryZones": [
-    {
-      "id": 1,
-      "name": "Por favor seleccionar su Barrio/Zona",
-      "fullPath": "Por favor seleccionar su Barrio/Zona",
-      "cost": 0,
-      "active": true
-    },
-    {
-      "id": 2,
-      "name": "Nuevo Vista Alegre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Nuevo Vista Alegre",
-      "cost": 100,
-      "active": true
-    },
-    {
-      "id": 3,
-      "name": "Vista Alegre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Vista Alegre",
-      "cost": 300,
-      "active": true
-    },
-    {
-      "id": 4,
-      "name": "Reparto Sueño",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Reparto Sueño",
-      "cost": 250,
-      "active": true
-    },
-    {
-      "id": 5,
-      "name": "San Pedrito",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > San Pedrito",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 6,
-      "name": "Altamira",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Altamira",
-      "cost": 300,
-      "active": true
-    },
-    {
-      "id": 7,
-      "name": "Micro 7, 8 , 9",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Micro 7, 8 , 9",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 8,
-      "name": "Alameda",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Alameda",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 9,
-      "name": "El Caney",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > El Caney",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 10,
-      "name": "Quintero",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Quintero",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 11,
-      "name": "Marimon",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Marimon",
-      "cost": 100,
-      "active": true
-    },
-    {
-      "id": 12,
-      "name": "Los cangrejitos",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Los cangrejitos",
-      "cost": 150,
-      "active": true
-    },
-    {
-      "id": 13,
-      "name": "Trocha",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Trocha",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 14,
-      "name": "Versalles",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Versalles",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 15,
-      "name": "Reparto Portuondo",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Reparto Portuondo",
-      "cost": 600,
-      "active": true
-    },
-    {
-      "id": 16,
-      "name": "30 de Noviembre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > 30 de Noviembre",
-      "cost": 600,
-      "active": true
-    },
-    {
-      "id": 17,
-      "name": "Rajayoga",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Rajayoga",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 18,
-      "name": "Antonio Maceo",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Antonio Maceo",
-      "cost": 600,
-      "active": true
-    },
-    {
-      "id": 19,
-      "name": "Los Pinos",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Los Pinos",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 20,
-      "name": "Distrito José Martí",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Distrito José Martí",
-      "cost": 100,
-      "active": true
-    },
-    {
-      "id": 21,
-      "name": "Cobre",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Cobre",
-      "cost": 800,
-      "active": true
-    },
-    {
-      "id": 22,
-      "name": "El Parque Céspedes",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > El Parque Céspedes",
-      "cost": 200,
-      "active": true
-    },
-    {
-      "id": 23,
-      "name": "Carretera del Morro",
-      "fullPath": "Santiago de Cuba > Santiago de Cuba > Carretera del Morro",
-      "cost": 300,
-      "active": true
-    }
-  ]
-};
-
-const adminReducer = (state: AdminState, action: AdminAction): AdminState => {
+function adminReducer(state: AdminState, action: AdminAction): AdminState {
   switch (action.type) {
-    case 'UPDATE_PRICING':
-      return {
-        ...state,
-        config: {
-          ...state.config,
-          pricing: action.payload
-        }
-      };
-    case 'ADD_NOVELA':
-      return {
-        ...state,
-        config: {
-          ...state.config,
-          novelas: [...state.config.novelas, action.payload]
-        }
-      };
-    case 'UPDATE_NOVELA':
-      return {
-        ...state,
-        config: {
-          ...state.config,
-          novelas: state.config.novelas.map(novela =>
-            novela.id === action.payload.id ? action.payload : novela
-          )
-        }
-      };
-    case 'DELETE_NOVELA':
-      return {
-        ...state,
-        config: {
-          ...state.config,
-          novelas: state.config.novelas.filter(novela => novela.id !== action.payload)
-        }
-      };
+    case 'LOGIN':
+      return { ...state, isAuthenticated: action.payload };
+    case 'LOGOUT':
+      return { ...state, isAuthenticated: false };
+    case 'UPDATE_PRICES':
+      return { ...state, prices: action.payload };
     case 'ADD_DELIVERY_ZONE':
       return {
         ...state,
-        config: {
-          ...state.config,
-          deliveryZones: [...state.config.deliveryZones, action.payload]
-        }
+        deliveryZones: [...state.deliveryZones, action.payload]
       };
     case 'UPDATE_DELIVERY_ZONE':
       return {
         ...state,
-        config: {
-          ...state.config,
-          deliveryZones: state.config.deliveryZones.map(zone =>
-            zone.id === action.payload.id ? action.payload : zone
-          )
-        }
+        deliveryZones: state.deliveryZones.map(zone =>
+          zone.id === action.payload.id ? action.payload : zone
+        )
       };
     case 'DELETE_DELIVERY_ZONE':
       return {
         ...state,
-        config: {
-          ...state.config,
-          deliveryZones: state.config.deliveryZones.filter(zone => zone.id !== action.payload)
-        }
+        deliveryZones: state.deliveryZones.filter(zone => zone.id !== action.payload)
       };
-    case 'TOGGLE_DELIVERY_ZONE':
+    case 'ADD_NOVEL':
       return {
         ...state,
-        config: {
-          ...state.config,
-          deliveryZones: state.config.deliveryZones.map(zone =>
-            zone.id === action.payload ? { ...zone, active: !zone.active } : zone
-          )
-        }
+        novels: [...state.novels, action.payload]
       };
-    case 'LOAD_CONFIG':
+    case 'UPDATE_NOVEL':
       return {
         ...state,
-        config: action.payload
+        novels: state.novels.map(novel =>
+          novel.id === action.payload.id ? action.payload : novel
+        )
       };
-    case 'LOG_IN':
+    case 'DELETE_NOVEL':
       return {
         ...state,
-        isAuthenticated: true
+        novels: state.novels.filter(novel => novel.id !== action.payload)
       };
-    case 'LOG_OUT':
+    case 'ADD_NOTIFICATION':
+      const notification: AdminNotification = {
+        ...action.payload,
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString()
+      };
       return {
         ...state,
-        isAuthenticated: false
+        notifications: [notification, ...state.notifications.slice(0, 49)] // Keep last 50
       };
+    case 'CLEAR_NOTIFICATIONS':
+      return { ...state, notifications: [] };
+    case 'UPDATE_SYSTEM_FILES':
+      return { ...state, systemFiles: action.payload };
+    case 'SET_LAST_BACKUP':
+      return { ...state, lastBackup: action.payload };
+    case 'LOAD_ADMIN_DATA':
+      return { ...state, ...action.payload };
     default:
       return state;
   }
-};
+}
 
-const AdminContext = createContext<AdminContextType | undefined>(undefined);
+export function AdminProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(adminReducer, initialState);
 
-export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(adminReducer, {
-    config: currentAppliedConfig,
-    isAuthenticated: false
-  });
+  // Load admin data from localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem('adminData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        dispatch({ type: 'LOAD_ADMIN_DATA', payload: parsedData });
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+      }
+    }
+    
+    // Initialize system files
+    updateSystemFiles();
+  }, []);
 
-  // Todas las funciones implementadas con configuración actual aplicada
+  // Save admin data to localStorage
+  useEffect(() => {
+    const dataToSave = {
+      prices: state.prices,
+      deliveryZones: state.deliveryZones,
+      novels: state.novels,
+      lastBackup: state.lastBackup
+    };
+    localStorage.setItem('adminData', JSON.stringify(dataToSave));
+  }, [state.prices, state.deliveryZones, state.novels, state.lastBackup]);
+
   const login = (username: string, password: string): boolean => {
-    if (username === 'admin' && password === 'admin') {
-      dispatch({ type: 'LOG_IN' });
+    if (username === 'root' && password === 'video') {
+      dispatch({ type: 'LOGIN', payload: true });
+      addNotification({
+        type: 'success',
+        title: 'Acceso Autorizado',
+        message: 'Sesión iniciada correctamente en el panel de control',
+        section: 'Autenticación',
+        action: 'Login'
+      });
       return true;
     }
+    addNotification({
+      type: 'error',
+      title: 'Acceso Denegado',
+      message: 'Credenciales incorrectas',
+      section: 'Autenticación',
+      action: 'Login Failed'
+    });
     return false;
   };
 
   const logout = () => {
-    dispatch({ type: 'LOG_OUT' });
+    dispatch({ type: 'LOGOUT' });
+    addNotification({
+      type: 'info',
+      title: 'Sesión Cerrada',
+      message: 'Se ha cerrado la sesión del panel de control',
+      section: 'Autenticación',
+      action: 'Logout'
+    });
   };
 
-  const addNovela = (novela: Omit<NovelasConfig, 'id'>) => {
-    const newId = Math.max(...state.config.novelas.map(n => n.id), 0) + 1;
-    const newNovela: NovelasConfig = {
-      ...novela,
-      id: newId,
-      costoEfectivo: novela.costoEfectivo || novela.capitulos * 5,
-      costoTransferencia: novela.costoTransferencia || Math.round((novela.capitulos * 5) * (1 + state.config.pricing.transferFeePercentage / 100))
+  const updatePrices = (prices: PriceConfig) => {
+    dispatch({ type: 'UPDATE_PRICES', payload: prices });
+    addNotification({
+      type: 'success',
+      title: 'Precios Actualizados',
+      message: `Película: $${prices.moviePrice}, Serie: $${prices.seriesPrice}, Transferencia: ${prices.transferFeePercentage}%`,
+      section: 'Control de Precios',
+      action: 'Update Prices'
+    });
+  };
+
+  const addDeliveryZone = (zoneData: Omit<DeliveryZone, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const zone: DeliveryZone = {
+      ...zoneData,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-    dispatch({ type: 'ADD_NOVELA', payload: newNovela });
+    dispatch({ type: 'ADD_DELIVERY_ZONE', payload: zone });
+    addNotification({
+      type: 'success',
+      title: 'Zona Agregada',
+      message: `Nueva zona de entrega: ${zone.name} - $${zone.cost} CUP`,
+      section: 'Zonas de Entrega',
+      action: 'Add Zone'
+    });
   };
 
-  const updateNovela = (id: number, novelaData: Partial<NovelasConfig>) => {
-    const existingNovela = state.config.novelas.find(n => n.id === id);
-    if (existingNovela) {
-      const updatedNovela: NovelasConfig = { ...existingNovela, ...novelaData };
-      dispatch({ type: 'UPDATE_NOVELA', payload: updatedNovela });
-    }
+  const updateDeliveryZone = (zone: DeliveryZone) => {
+    const updatedZone = { ...zone, updatedAt: new Date().toISOString() };
+    dispatch({ type: 'UPDATE_DELIVERY_ZONE', payload: updatedZone });
+    addNotification({
+      type: 'success',
+      title: 'Zona Actualizada',
+      message: `Zona modificada: ${zone.name}`,
+      section: 'Zonas de Entrega',
+      action: 'Update Zone'
+    });
   };
 
-  const deleteNovela = (id: number) => {
-    dispatch({ type: 'DELETE_NOVELA', payload: id });
+  const deleteDeliveryZone = (id: string) => {
+    const zone = state.deliveryZones.find(z => z.id === id);
+    dispatch({ type: 'DELETE_DELIVERY_ZONE', payload: id });
+    addNotification({
+      type: 'warning',
+      title: 'Zona Eliminada',
+      message: `Zona eliminada: ${zone?.name || 'Desconocida'}`,
+      section: 'Zonas de Entrega',
+      action: 'Delete Zone'
+    });
   };
 
-  const addDeliveryZone = (zone: Omit<DeliveryZoneConfig, 'id'>) => {
-    const newId = Math.max(...state.config.deliveryZones.map(z => z.id), 0) + 1;
-    const newZone: DeliveryZoneConfig = {
-      ...zone,
-      id: newId,
-      fullPath: zone.fullPath || `Santiago de Cuba > Santiago de Cuba > ${zone.name}`
+  const addNovel = (novelData: Omit<Novel, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const novel: Novel = {
+      ...novelData,
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-    dispatch({ type: 'ADD_DELIVERY_ZONE', payload: newZone });
+    dispatch({ type: 'ADD_NOVEL', payload: novel });
+    addNotification({
+      type: 'success',
+      title: 'Novela Agregada',
+      message: `Nueva novela: ${novel.titulo} (${novel.capitulos} capítulos)`,
+      section: 'Gestión de Novelas',
+      action: 'Add Novel'
+    });
   };
 
-  const updateDeliveryZone = (id: number, zoneData: Partial<DeliveryZoneConfig>) => {
-    const existingZone = state.config.deliveryZones.find(z => z.id === id);
-    if (existingZone) {
-      const updatedZone: DeliveryZoneConfig = { ...existingZone, ...zoneData };
-      dispatch({ type: 'UPDATE_DELIVERY_ZONE', payload: updatedZone });
-    }
+  const updateNovel = (novel: Novel) => {
+    const updatedNovel = { ...novel, updatedAt: new Date().toISOString() };
+    dispatch({ type: 'UPDATE_NOVEL', payload: updatedNovel });
+    addNotification({
+      type: 'success',
+      title: 'Novela Actualizada',
+      message: `Novela modificada: ${novel.titulo}`,
+      section: 'Gestión de Novelas',
+      action: 'Update Novel'
+    });
   };
 
-  const deleteDeliveryZone = (id: number) => {
-    if (id !== 1) {
-      dispatch({ type: 'DELETE_DELIVERY_ZONE', payload: id });
-    }
+  const deleteNovel = (id: number) => {
+    const novel = state.novels.find(n => n.id === id);
+    dispatch({ type: 'DELETE_NOVEL', payload: id });
+    addNotification({
+      type: 'warning',
+      title: 'Novela Eliminada',
+      message: `Novela eliminada: ${novel?.titulo || 'Desconocida'}`,
+      section: 'Gestión de Novelas',
+      action: 'Delete Novel'
+    });
   };
 
-  const exportConfig = (): string => {
-    return JSON.stringify(state.config, null, 2);
+  const addNotification = (notification: Omit<AdminNotification, 'id' | 'timestamp'>) => {
+    dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
   };
 
-  const importConfig = (configData: string): boolean => {
-    try {
-      const parsedConfig = JSON.parse(configData);
-      if (parsedConfig.pricing && parsedConfig.novelas && parsedConfig.deliveryZones) {
-        dispatch({ type: 'LOAD_CONFIG', payload: parsedConfig });
-        return true;
+  const clearNotifications = () => {
+    dispatch({ type: 'CLEAR_NOTIFICATIONS' });
+  };
+
+  const updateSystemFiles = () => {
+    const files: SystemFile[] = [
+      {
+        name: 'AdminContext.tsx',
+        path: 'src/context/AdminContext.tsx',
+        lastModified: new Date().toISOString(),
+        size: 12500,
+        type: 'context',
+        description: 'Contexto principal del panel administrativo'
+      },
+      {
+        name: 'CartContext.tsx',
+        path: 'src/context/CartContext.tsx',
+        lastModified: new Date().toISOString(),
+        size: 8900,
+        type: 'context',
+        description: 'Contexto del carrito de compras'
+      },
+      {
+        name: 'CheckoutModal.tsx',
+        path: 'src/components/CheckoutModal.tsx',
+        lastModified: new Date().toISOString(),
+        size: 15600,
+        type: 'component',
+        description: 'Modal de checkout con zonas de entrega'
+      },
+      {
+        name: 'NovelasModal.tsx',
+        path: 'src/components/NovelasModal.tsx',
+        lastModified: new Date().toISOString(),
+        size: 18200,
+        type: 'component',
+        description: 'Modal de catálogo de novelas'
+      },
+      {
+        name: 'PriceCard.tsx',
+        path: 'src/components/PriceCard.tsx',
+        lastModified: new Date().toISOString(),
+        size: 3400,
+        type: 'component',
+        description: 'Componente de visualización de precios'
+      },
+      {
+        name: 'AdminPanel.tsx',
+        path: 'src/pages/AdminPanel.tsx',
+        lastModified: new Date().toISOString(),
+        size: 25000,
+        type: 'page',
+        description: 'Panel de control administrativo principal'
       }
-      return false;
-    } catch (error) {
-      return false;
-    }
+    ];
+    
+    dispatch({ type: 'UPDATE_SYSTEM_FILES', payload: files });
   };
 
-  const resetToDefaults = () => {
-    dispatch({ type: 'LOAD_CONFIG', payload: defaultConfig });
+  const exportSystemBackup = () => {
+    const backupData = {
+      appName: 'TV a la Carta',
+      version: '2.0.0',
+      exportDate: new Date().toISOString(),
+      adminConfig: {
+        prices: state.prices,
+        deliveryZones: state.deliveryZones,
+        novels: state.novels
+      },
+      systemFiles: state.systemFiles,
+      notifications: state.notifications.slice(0, 100), // Last 100 notifications
+      metadata: {
+        totalZones: state.deliveryZones.length,
+        activeZones: state.deliveryZones.filter(z => z.active).length,
+        totalNovels: state.novels.length,
+        activeNovels: state.novels.filter(n => n.active).length,
+        lastBackup: state.lastBackup
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], {
+      type: 'application/json'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `TV_a_la_Carta_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    const backupTime = new Date().toISOString();
+    dispatch({ type: 'SET_LAST_BACKUP', payload: backupTime });
+    
+    addNotification({
+      type: 'success',
+      title: 'Backup Exportado',
+      message: 'Sistema completo exportado correctamente',
+      section: 'Sistema Backup',
+      action: 'Export Backup'
+    });
   };
 
-  const showNotification = (message: string, type: 'success' | 'info' | 'warning' | 'error') => {
-    console.log(`${type.toUpperCase()}: ${message}`);
-  };
-
-  const getCurrentConfig = (): AdminConfig => {
-    return state.config;
-  };
-
-  const exportSystemFiles = () => {
-    console.log('Exportando archivos del sistema con configuración actual aplicada');
-  };
-
-  useEffect(() => {
-    localStorage.setItem('adminConfig', JSON.stringify(state.config));
-  }, [state.config]);
-
-  const contextValue: AdminContextType = {
-    state, 
-    dispatch, 
-    login, 
-    logout,
-    addNovela,
-    updateNovela,
-    deleteNovela,
-    addDeliveryZone,
-    updateDeliveryZone,
-    deleteDeliveryZone,
-    exportConfig,
-    importConfig,
-    resetToDefaults,
-    showNotification,
-    exportSystemFiles,
-    getCurrentConfig
+  const getSystemFiles = (): SystemFile[] => {
+    return state.systemFiles;
   };
 
   return (
-    <AdminContext.Provider value={contextValue}>
+    <AdminContext.Provider value={{
+      state,
+      login,
+      logout,
+      updatePrices,
+      addDeliveryZone,
+      updateDeliveryZone,
+      deleteDeliveryZone,
+      addNovel,
+      updateNovel,
+      deleteNovel,
+      addNotification,
+      clearNotifications,
+      exportSystemBackup,
+      getSystemFiles
+    }}>
       {children}
     </AdminContext.Provider>
   );
-};
+}
 
-export const useAdmin = () => {
+export function useAdmin() {
   const context = useContext(AdminContext);
   if (context === undefined) {
     throw new Error('useAdmin must be used within an AdminProvider');
   }
   return context;
-};
+}
