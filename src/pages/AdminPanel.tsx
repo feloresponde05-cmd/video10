@@ -270,21 +270,6 @@ export function AdminPanel() {
   const [zoneForm, setZoneForm] = useState({ name: '', cost: 0, active: true });
   const [novelForm, setNovelForm] = useState({ titulo: '', genero: '', capitulos: 0, año: new Date().getFullYear(), descripcion: '', active: true });
 
-  // Toast notification state
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    message: string;
-    type: 'success' | 'error' | 'info';
-  }>({ show: false, message: '', type: 'success' });
-
-  // Show notification function
-  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => {
-      setNotification(prev => ({ ...prev, show: false }));
-    }, 4000);
-  };
-
   useEffect(() => {
     setPriceForm(state.prices);
   }, [state.prices]);
@@ -296,13 +281,11 @@ export function AdminPanel() {
   const handlePriceUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     updatePrices(priceForm);
-    showNotification('Precios actualizados correctamente', 'success');
   };
 
   const handleAddZone = (e: React.FormEvent) => {
     e.preventDefault();
     addDeliveryZone(zoneForm);
-    showNotification(`Zona "${zoneForm.name}" agregada correctamente`, 'success');
     setZoneForm({ name: '', cost: 0, active: true });
     setShowAddZoneForm(false);
   };
@@ -311,7 +294,6 @@ export function AdminPanel() {
     e.preventDefault();
     if (editingZone) {
       updateDeliveryZone({ ...editingZone, ...zoneForm });
-      showNotification(`Zona "${zoneForm.name}" actualizada correctamente`, 'success');
       setEditingZone(null);
       setZoneForm({ name: '', cost: 0, active: true });
     }
@@ -320,7 +302,6 @@ export function AdminPanel() {
   const handleAddNovel = (e: React.FormEvent) => {
     e.preventDefault();
     addNovel(novelForm);
-    showNotification(`Novela "${novelForm.titulo}" agregada correctamente`, 'success');
     setNovelForm({ titulo: '', genero: '', capitulos: 0, año: new Date().getFullYear(), descripcion: '', active: true });
     setShowAddNovelForm(false);
   };
@@ -329,7 +310,6 @@ export function AdminPanel() {
     e.preventDefault();
     if (editingNovel) {
       updateNovel({ ...editingNovel, ...novelForm });
-      showNotification(`Novela "${novelForm.titulo}" actualizada correctamente`, 'success');
       setEditingNovel(null);
       setNovelForm({ titulo: '', genero: '', capitulos: 0, año: new Date().getFullYear(), descripcion: '', active: true });
     }
@@ -343,28 +323,6 @@ export function AdminPanel() {
   const startEditNovel = (novel: Novel) => {
     setEditingNovel(novel);
     setNovelForm({ titulo: novel.titulo, genero: novel.genero, capitulos: novel.capitulos, año: novel.año, descripcion: novel.descripcion || '', active: novel.active });
-  };
-
-  const handleDeleteZone = (zoneId: number) => {
-    const zone = state.deliveryZones.find(z => z.id === zoneId);
-    deleteDeliveryZone(zoneId);
-    showNotification(`Zona "${zone?.name}" eliminada correctamente`, 'info');
-  };
-
-  const handleDeleteNovel = (novelId: number) => {
-    const novel = state.novels.find(n => n.id === novelId);
-    deleteNovel(novelId);
-    showNotification(`Novela "${novel?.titulo}" eliminada correctamente`, 'info');
-  };
-
-  const handleClearNotifications = () => {
-    clearNotifications();
-    showNotification('Notificaciones limpiadas correctamente', 'info');
-  };
-
-  const handleExportBackup = () => {
-    exportSystemBackup();
-    showNotification('Sistema exportado correctamente', 'success');
   };
 
   const renderDashboard = () => (
@@ -666,14 +624,12 @@ export function AdminPanel() {
                   <button
                     onClick={() => startEditZone(zone)}
                     className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Editar zona"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteZone(zone.id)}
+                    onClick={() => deleteDeliveryZone(zone.id)}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Eliminar zona"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -844,14 +800,12 @@ export function AdminPanel() {
                   <button
                     onClick={() => startEditNovel(novel)}
                     className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Editar novela"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteNovel(novel.id)}
+                    onClick={() => deleteNovel(novel.id)}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Eliminar novela"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -910,7 +864,6 @@ export function AdminPanel() {
               </p>
               <button
                 onClick={exportSystemBackup}
-                onClick={handleExportBackup}
                 className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center space-x-3 mx-auto"
               >
                 <Download className="h-6 w-6" />
@@ -1038,7 +991,6 @@ export function AdminPanel() {
             
             <button
               onClick={logout}
-              onClick={handleClearNotifications}
               className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
             >
               Cerrar Sesión
@@ -1095,50 +1047,6 @@ export function AdminPanel() {
           </div>
         </div>
       </div>
-
-      {/* Toast Notification */}
-      {notification.show && (
-        <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-right duration-300">
-          <div className={`flex items-center p-4 rounded-xl shadow-2xl border-l-4 max-w-md ${
-            notification.type === 'success' 
-              ? 'bg-green-50 border-green-500 text-green-800' 
-              : notification.type === 'error'
-                ? 'bg-red-50 border-red-500 text-red-800'
-                : 'bg-blue-50 border-blue-500 text-blue-800'
-          }`}>
-            <div className={`p-2 rounded-full mr-3 ${
-              notification.type === 'success' 
-                ? 'bg-green-100' 
-                : notification.type === 'error'
-                  ? 'bg-red-100'
-                  : 'bg-blue-100'
-            }`}>
-              {notification.type === 'success' ? (
-                <Check className="h-5 w-5 text-green-600" />
-              ) : notification.type === 'error' ? (
-                <X className="h-5 w-5 text-red-600" />
-              ) : (
-                <Info className="h-5 w-5 text-blue-600" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-sm">{notification.message}</p>
-            </div>
-            <button
-              onClick={() => setNotification(prev => ({ ...prev, show: false }))}
-              className={`ml-3 p-1 rounded-full hover:bg-opacity-20 transition-colors ${
-                notification.type === 'success' 
-                  ? 'hover:bg-green-600' 
-                  : notification.type === 'error'
-                    ? 'hover:bg-red-600'
-                    : 'hover:bg-blue-600'
-              }`}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
