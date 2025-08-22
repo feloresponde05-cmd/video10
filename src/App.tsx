@@ -10,7 +10,7 @@ import { Anime } from './pages/Anime';
 import { SearchPage } from './pages/Search';
 import { MovieDetail } from './pages/MovieDetail';
 import { TVDetail } from './pages/TVDetail';
-import { Cart } from './pages/Cart';
+import Cart from './pages/Cart';
 import { AdminPanel } from './pages/AdminPanel';
 
 function App() {
