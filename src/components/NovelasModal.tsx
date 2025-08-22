@@ -741,7 +741,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                       </div>
                     )}
                   </div>
-                </div>
+                          Transferencia (+{transferFeePercentage}%)
 
                 {selectedNovelas.length > 0 && (
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 border-t border-gray-200">
