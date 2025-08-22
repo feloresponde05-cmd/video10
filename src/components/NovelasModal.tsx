@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, MessageCircle, Phone, BookOpen, Info, Check, DollarSign, CreditCard, Calculator, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
-import { useAdmin, AdminContext } from '../context/AdminContext';
+import { X, Download, MessageCircle, Phone, BookOpen, Info, Check, DollarSign, CreditCard, Calculator, Search, Filter, SortAsc, SortDesc, Grid, List, Star, Calendar, Hash, Zap } from 'lucide-react';
+import { AdminContext } from '../context/AdminContext';
 
 interface Novela {
   id: number;
@@ -21,7 +21,6 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
   const adminContext = React.useContext(AdminContext);
   const [selectedNovelas, setSelectedNovelas] = useState<number[]>([]);
   const [novelasWithPayment, setNovelasWithPayment] = useState<Novela[]>([]);
-  const [showContactOptions, setShowContactOptions] = useState(false);
   const [showNovelList, setShowNovelList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
@@ -29,11 +28,12 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
   const [sortBy, setSortBy] = useState<'titulo' | 'año' | 'capitulos'>('titulo');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Get novels and prices from admin context if available
+  // Get novels and prices from admin context with real-time updates
   const adminNovels = adminContext?.state?.novels || [];
   const novelPricePerChapter = adminContext?.state?.prices?.novelPricePerChapter || 5;
+  const transferFeePercentage = adminContext?.state?.prices?.transferFeePercentage || 10;
   
-  // Lista de novelas basada en el documento
+  // Base novels list
   const defaultNovelas: Novela[] = [
     { id: 1, titulo: "Corazón Salvaje", genero: "Drama/Romance", capitulos: 185, año: 2009 },
     { id: 2, titulo: "La Usurpadora", genero: "Drama/Melodrama", capitulos: 98, año: 1998 },
@@ -87,7 +87,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     { id: 50, titulo: "La Herencia", genero: "Drama/Romance", capitulos: 74, año: 2022 }
   ];
 
-  // Combine admin novels with default novels
+  // Combine admin novels with default novels - real-time sync
   const allNovelas = [...defaultNovelas, ...adminNovels.map(novel => ({
     id: novel.id,
     titulo: novel.titulo,
@@ -99,13 +99,13 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
 
   const phoneNumber = '+5354690878';
 
-  // Obtener géneros únicos
+  // Get unique genres
   const uniqueGenres = [...new Set(allNovelas.map(novela => novela.genero))].sort();
   
-  // Obtener años únicos
+  // Get unique years
   const uniqueYears = [...new Set(allNovelas.map(novela => novela.año))].sort((a, b) => b - a);
 
-  // Función para filtrar novelas
+  // Filter novels function
   const getFilteredNovelas = () => {
     let filtered = novelasWithPayment.filter(novela => {
       const matchesSearch = novela.titulo.toLowerCase().includes(searchTerm.toLowerCase());
@@ -115,7 +115,6 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
       return matchesSearch && matchesGenre && matchesYear;
     });
 
-    // Ordenar resultados
     filtered.sort((a, b) => {
       let comparison = 0;
       
@@ -139,14 +138,14 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
 
   const filteredNovelas = getFilteredNovelas();
 
-  // Inicializar novelas con tipo de pago por defecto
+  // Initialize novels with default payment type
   useEffect(() => {
     const novelasWithDefaultPayment = allNovelas.map(novela => ({
       ...novela,
       paymentType: 'cash' as const
     }));
     setNovelasWithPayment(novelasWithDefaultPayment);
-  }, [adminNovels]);
+  }, [adminNovels.length]);
 
   const handleNovelToggle = (novelaId: number) => {
     setSelectedNovelas(prev => {
@@ -184,7 +183,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     setSortOrder('asc');
   };
 
-  // Calcular totales por tipo de pago
+  // Calculate totals by payment type with real-time pricing
   const calculateTotals = () => {
     const selectedNovelasData = novelasWithPayment.filter(n => selectedNovelas.includes(n.id));
     
@@ -193,7 +192,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     
     const cashTotal = cashNovelas.reduce((sum, n) => sum + (n.capitulos * novelPricePerChapter), 0);
     const transferBaseTotal = transferNovelas.reduce((sum, n) => sum + (n.capitulos * novelPricePerChapter), 0);
-    const transferFee = Math.round(transferBaseTotal * 0.1);
+    const transferFee = Math.round(transferBaseTotal * (transferFeePercentage / 100));
     const transferTotal = transferBaseTotal + transferFee;
     
     const grandTotal = cashTotal + transferTotal;
@@ -216,10 +215,10 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     let listText = "📚 CATÁLOGO DE NOVELAS DISPONIBLES\n";
     listText += "TV a la Carta - Novelas Completas\n\n";
     listText += `💰 Precio: $${novelPricePerChapter} CUP por capítulo\n`;
+    listText += `💳 Recargo transferencia: ${transferFeePercentage}%\n`;
     listText += "📱 Contacto: +5354690878\n\n";
     listText += "═══════════════════════════════════\n\n";
     
-    // Separar novelas por tipo de pago para mostrar cálculos
     listText += "💵 PRECIOS EN EFECTIVO:\n";
     listText += "═══════════════════════════════════\n\n";
     
@@ -229,23 +228,23 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
       listText += `   📺 Género: ${novela.genero}\n`;
       listText += `   📊 Capítulos: ${novela.capitulos}\n`;
       listText += `   📅 Año: ${novela.año}\n`;
-      listText += `   💰 Costo en efectivo: $${baseCost.toLocaleString()} CUP\n\n`;
+      listText += `   💰 Costo en efectivo: ${baseCost.toLocaleString()} CUP\n\n`;
     });
     
-    listText += "\n🏦 PRECIOS CON TRANSFERENCIA BANCARIA (+10%):\n";
+    listText += `\n🏦 PRECIOS CON TRANSFERENCIA BANCARIA (+${transferFeePercentage}%):\n`;
     listText += "═══════════════════════════════════\n\n";
     
     allNovelas.forEach((novela, index) => {
       const baseCost = novela.capitulos * novelPricePerChapter;
-      const transferCost = Math.round(baseCost * 1.1);
+      const transferCost = Math.round(baseCost * (1 + transferFeePercentage / 100));
       const recargo = transferCost - baseCost;
       listText += `${index + 1}. ${novela.titulo}\n`;
       listText += `   📺 Género: ${novela.genero}\n`;
       listText += `   📊 Capítulos: ${novela.capitulos}\n`;
       listText += `   📅 Año: ${novela.año}\n`;
-      listText += `   💰 Costo base: $${baseCost.toLocaleString()} CUP\n`;
-      listText += `   💳 Recargo (10%): +$${recargo.toLocaleString()} CUP\n`;
-      listText += `   💰 Costo con transferencia: $${transferCost.toLocaleString()} CUP\n\n`;
+      listText += `   💰 Costo base: ${baseCost.toLocaleString()} CUP\n`;
+      listText += `   💳 Recargo (${transferFeePercentage}%): +${recargo.toLocaleString()} CUP\n`;
+      listText += `   💰 Costo con transferencia: ${transferCost.toLocaleString()} CUP\n\n`;
     });
     
     listText += "\n📊 RESUMEN DE COSTOS:\n";
@@ -253,22 +252,22 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     
     const totalCapitulos = allNovelas.reduce((sum, novela) => sum + novela.capitulos, 0);
     const totalEfectivo = allNovelas.reduce((sum, novela) => sum + (novela.capitulos * novelPricePerChapter), 0);
-    const totalTransferencia = allNovelas.reduce((sum, novela) => sum + Math.round((novela.capitulos * novelPricePerChapter) * 1.1), 0);
+    const totalTransferencia = allNovelas.reduce((sum, novela) => sum + Math.round((novela.capitulos * novelPricePerChapter) * (1 + transferFeePercentage / 100)), 0);
     const totalRecargo = totalTransferencia - totalEfectivo;
     
     listText += `📊 Total de novelas: ${allNovelas.length}\n`;
     listText += `📊 Total de capítulos: ${totalCapitulos.toLocaleString()}\n\n`;
     listText += `💵 CATÁLOGO COMPLETO EN EFECTIVO:\n`;
-    listText += `   💰 Costo total: $${totalEfectivo.toLocaleString()} CUP\n\n`;
+    listText += `   💰 Costo total: ${totalEfectivo.toLocaleString()} CUP\n\n`;
     listText += `🏦 CATÁLOGO COMPLETO CON TRANSFERENCIA:\n`;
-    listText += `   💰 Costo base: $${totalEfectivo.toLocaleString()} CUP\n`;
-    listText += `   💳 Recargo total (10%): +$${totalRecargo.toLocaleString()} CUP\n`;
-    listText += `   💰 Costo total con transferencia: $${totalTransferencia.toLocaleString()} CUP\n\n`;
+    listText += `   💰 Costo base: ${totalEfectivo.toLocaleString()} CUP\n`;
+    listText += `   💳 Recargo total (${transferFeePercentage}%): +${totalRecargo.toLocaleString()} CUP\n`;
+    listText += `   💰 Costo total con transferencia: ${totalTransferencia.toLocaleString()} CUP\n\n`;
     
     listText += "═══════════════════════════════════\n";
     listText += "💡 INFORMACIÓN IMPORTANTE:\n";
     listText += "• Los precios en efectivo no tienen recargo adicional\n";
-    listText += "• Las transferencias bancarias tienen un 10% de recargo\n";
+    listText += `• Las transferencias bancarias tienen un ${transferFeePercentage}% de recargo\n`;
     listText += "• Puedes seleccionar novelas individuales o el catálogo completo\n";
     listText += "• Todos los precios están en pesos cubanos (CUP)\n\n";
     listText += "📞 Para encargar, contacta al +5354690878\n";
@@ -301,7 +300,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     
     let message = "Me interesan los siguientes títulos:\n\n";
     
-    // Novelas en efectivo
+    // Cash novels
     if (cashNovelas.length > 0) {
       message += "💵 PAGO EN EFECTIVO:\n";
       message += "═══════════════════════════════════\n";
@@ -310,35 +309,35 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
         message += `   📺 Género: ${novela.genero}\n`;
         message += `   📊 Capítulos: ${novela.capitulos}\n`;
         message += `   📅 Año: ${novela.año}\n`;
-        message += `   💰 Costo: $${(novela.capitulos * 5).toLocaleString()} CUP\n\n`;
+        message += `   💰 Costo: $${(novela.capitulos * novelPricePerChapter).toLocaleString()} CUP\n\n`;
       });
       message += `💰 Subtotal Efectivo: $${cashTotal.toLocaleString()} CUP\n`;
       message += `📊 Total capítulos: ${cashNovelas.reduce((sum, n) => sum + n.capitulos, 0)}\n\n`;
     }
     
-    // Novelas por transferencia
+    // Transfer novels
     if (transferNovelas.length > 0) {
-      message += "🏦 PAGO POR TRANSFERENCIA BANCARIA (+10%):\n";
+      message += `🏦 PAGO POR TRANSFERENCIA BANCARIA (+${transferFeePercentage}%):\n`;
       message += "═══════════════════════════════════\n";
       transferNovelas.forEach((novela, index) => {
-        const baseCost = novela.capitulos * 5;
-        const fee = Math.round(baseCost * 0.1);
+        const baseCost = novela.capitulos * novelPricePerChapter;
+        const fee = Math.round(baseCost * (transferFeePercentage / 100));
         const totalCost = baseCost + fee;
         message += `${index + 1}. ${novela.titulo}\n`;
         message += `   📺 Género: ${novela.genero}\n`;
         message += `   📊 Capítulos: ${novela.capitulos}\n`;
         message += `   📅 Año: ${novela.año}\n`;
         message += `   💰 Costo base: $${baseCost.toLocaleString()} CUP\n`;
-        message += `   💳 Recargo (10%): +$${fee.toLocaleString()} CUP\n`;
+        message += `   💳 Recargo (${transferFeePercentage}%): +$${fee.toLocaleString()} CUP\n`;
         message += `   💰 Costo total: $${totalCost.toLocaleString()} CUP\n\n`;
       });
       message += `💰 Subtotal base transferencia: $${transferBaseTotal.toLocaleString()} CUP\n`;
-      message += `💳 Recargo total (10%): +$${transferFee.toLocaleString()} CUP\n`;
+      message += `💳 Recargo total (${transferFeePercentage}%): +$${transferFee.toLocaleString()} CUP\n`;
       message += `💰 Subtotal Transferencia: $${transferTotal.toLocaleString()} CUP\n`;
       message += `📊 Total capítulos: ${transferNovelas.reduce((sum, n) => sum + n.capitulos, 0)}\n\n`;
     }
     
-    // Resumen final
+    // Final summary
     message += "📊 RESUMEN FINAL:\n";
     message += "═══════════════════════════════════\n";
     message += `• Total de novelas: ${selectedNovelas.length}\n`;
@@ -397,7 +396,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
 
         <div className="overflow-y-auto max-h-[calc(95vh-120px)]">
           <div className="p-4 sm:p-6">
-            {/* Información Principal */}
+            {/* Main Information */}
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-6 mb-6 border-2 border-pink-200">
               <div className="flex items-center mb-4">
                 <div className="bg-pink-100 p-3 rounded-xl mr-4">
@@ -413,11 +412,11 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                 </div>
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">💰</span>
-                  <p className="font-semibold">Costo: $5 CUP por cada capítulo</p>
+                  <p className="font-semibold">Costo: ${novelPricePerChapter} CUP por cada capítulo</p>
                 </div>
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">💳</span>
-                  <p className="font-semibold">Transferencia bancaria: +10% de recargo</p>
+                  <p className="font-semibold">Transferencia bancaria: +{transferFeePercentage}% de recargo</p>
                 </div>
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">📱</span>
@@ -425,7 +424,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                 </div>
               </div>
 
-              {/* Número de contacto */}
+              {/* Contact number */}
               <div className="mt-6 bg-white rounded-xl p-4 border border-pink-300">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                   <div className="text-center sm:text-left">
@@ -453,7 +452,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
               </div>
             </div>
 
-            {/* Opciones del catálogo */}
+            {/* Catalog options */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <button
                 onClick={downloadNovelList}
@@ -478,88 +477,258 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
               </button>
             </div>
 
-            {/* Lista de novelas */}
+            {/* Novels list */}
             {showNovelList && (
               <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden">
-                {/* Filtros */}
+                {/* Filters */}
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 border-b border-gray-200">
-                  <div className="flex items-center mb-4">
-                    <Filter className="h-5 w-5 text-purple-600 mr-2" />
-                    <h4 className="text-lg font-bold text-purple-900">Filtros de Búsqueda</h4>
-                  </div>
-                  
-                  {/* Barra de búsqueda */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Buscar por título..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+                    <div className="flex items-center">
+                      <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                        <Filter className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-purple-900">Filtros Avanzados</h4>
+                        <p className="text-sm text-purple-600">Encuentra exactamente lo que buscas</p>
+                      </div>
                     </div>
-                    
-                    <select
-                      value={selectedGenre}
-                      onChange={(e) => setSelectedGenre(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">Todos los géneros</option>
-                      {uniqueGenres.map(genre => (
-                        <option key={genre} value={genre}>{genre}</option>
-                      ))}
-                    </select>
-                    
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">Todos los años</option>
-                      {uniqueYears.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                    
-                    <div className="flex space-x-2">
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as 'titulo' | 'año' | 'capitulos')}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                      >
-                        <option value="titulo">Título</option>
-                        <option value="año">Año</option>
-                        <option value="capitulos">Capítulos</option>
-                      </select>
-                      
-                      <button
-                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                        className="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors"
-                        title={`Ordenar ${sortOrder === 'asc' ? 'descendente' : 'ascendente'}`}
-                      >
-                        {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                    <div className="flex items-center space-x-2 bg-white rounded-lg p-1 border border-purple-200">
+                      <span className="text-xs font-medium text-purple-700 px-2">Vista:</span>
+                      <button className="p-2 rounded-md bg-purple-100 text-purple-700">
+                        <Grid className="h-4 w-4" />
+                      </button>
+                      <button className="p-2 rounded-md text-purple-600 hover:bg-purple-50">
+                        <List className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
                   
-                  {/* Botón limpiar filtros y contador de resultados */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
-                    <div className="text-sm text-purple-700">
-                      Mostrando {filteredNovelas.length} de {allNovelas.length} novelas
-                      {(searchTerm || selectedGenre || selectedYear) && (
-                        <span className="ml-2 text-purple-600">• Filtros activos</span>
+                  {/* Barra de búsqueda principal */}
+                  <div className="mb-6">
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center">
+                        <Search className="h-5 w-5 text-purple-400 mr-2" />
+                        <div className="h-5 w-px bg-purple-200"></div>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Buscar por título, género, año o descripción..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-14 pr-12 py-4 border-2 border-purple-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-400 bg-white shadow-lg hover:shadow-xl transition-all duration-300 placeholder-purple-300 text-gray-900 text-lg font-medium"
+                      />
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm('')}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-purple-100 hover:bg-purple-200 text-purple-600 p-2 rounded-full transition-all duration-300 hover:scale-110"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg">
+                        {filteredNovelas.length} resultados
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Filtros en tarjetas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {/* Filtro por género */}
+                    <div className="bg-white rounded-xl p-4 border-2 border-purple-100 hover:border-purple-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <div className="flex items-center mb-3">
+                        <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                          <Star className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <label className="text-sm font-bold text-purple-900">Género</label>
+                      </div>
+                      <select
+                        value={selectedGenre}
+                        onChange={(e) => setSelectedGenre(e.target.value)}
+                        className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-purple-50 text-purple-900 font-medium shadow-sm hover:shadow-md transition-all duration-300"
+                      >
+                        <option value="">🎭 Todos los géneros</option>
+                        {uniqueGenres.map(genre => (
+                          <option key={genre} value={genre}>
+                            {genre === 'Drama/Romance' ? '💕 ' + genre :
+                             genre === 'Comedia/Romance' ? '😄 ' + genre :
+                             genre === 'Drama/Melodrama' ? '😢 ' + genre :
+                             genre === 'Drama/Acción' ? '⚡ ' + genre :
+                             genre === 'Drama/Suspenso' ? '🔍 ' + genre :
+                             genre === 'Drama/Fantasía' ? '✨ ' + genre :
+                             '🎬 ' + genre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Filtro por año */}
+                    <div className="bg-white rounded-xl p-4 border-2 border-purple-100 hover:border-purple-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <div className="flex items-center mb-3">
+                        <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                          <Calendar className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <label className="text-sm font-bold text-blue-900">Año de Estreno</label>
+                      </div>
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50 text-blue-900 font-medium shadow-sm hover:shadow-md transition-all duration-300"
+                      >
+                        <option value="">📅 Todos los años</option>
+                        {uniqueYears.map(year => (
+                          <option key={year} value={year}>
+                            {year >= 2020 ? '🆕 ' : year >= 2010 ? '📺 ' : '📼 '}{year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Filtro de ordenamiento */}
+                    <div className="bg-white rounded-xl p-4 border-2 border-purple-100 hover:border-purple-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <div className="flex items-center mb-3">
+                        <div className="bg-green-100 p-2 rounded-lg mr-3">
+                          <Hash className="h-4 w-4 text-green-600" />
+                        </div>
+                        <label className="text-sm font-bold text-green-900">Ordenar por</label>
+                      </div>
+                      <div className="flex space-x-2">
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value as 'titulo' | 'año' | 'capitulos')}
+                          className="flex-1 px-3 py-3 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-sm bg-green-50 text-green-900 font-medium shadow-sm hover:shadow-md transition-all duration-300"
+                        >
+                          <option value="titulo">📝 Título</option>
+                          <option value="año">📅 Año</option>
+                          <option value="capitulos">📊 Capítulos</option>
+                        </select>
+                        
+                        <button
+                          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                          className="px-4 py-3 bg-gradient-to-r from-green-100 to-blue-100 hover:from-green-200 hover:to-blue-200 text-green-700 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md transform hover:scale-105"
+                          title={`Ordenar ${sortOrder === 'asc' ? 'descendente' : 'ascendente'}`}
+                        >
+                          {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                    
+                  {/* Filtros rápidos */}
+                  <div className="mb-6">
+                    <div className="flex items-center mb-3">
+                      <Zap className="h-4 w-4 text-yellow-600 mr-2" />
+                      <span className="text-sm font-bold text-yellow-900">Filtros Rápidos</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedGenre('Drama/Romance');
+                          setSelectedYear('');
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-pink-100 to-red-100 hover:from-pink-200 hover:to-red-200 text-pink-700 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
+                      >
+                        💕 Romance
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedGenre('');
+                          setSelectedYear('2020');
+                          setSortBy('año');
+                          setSortOrder('desc');
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 hover:from-blue-200 hover:to-purple-200 text-blue-700 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
+                      >
+                        🆕 Recientes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedGenre('');
+                          setSelectedYear('');
+                          setSortBy('capitulos');
+                          setSortOrder('desc');
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-green-100 to-teal-100 hover:from-green-200 hover:to-teal-200 text-green-700 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
+                      >
+                        📊 Más Capítulos
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedGenre('Comedia/Romance');
+                          setSelectedYear('');
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 text-yellow-700 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
+                      >
+                        😄 Comedia
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedGenre('');
+                          setSelectedYear('');
+                          setSortBy('año');
+                          setSortOrder('asc');
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-200 hover:to-indigo-200 text-purple-700 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md"
+                      >
+                        📼 Clásicas
+                      </button>
+                    </div>
+                  </div>
+                      
+                  {/* Estadísticas y controles */}
+                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-4 border border-purple-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-white rounded-lg p-3 shadow-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-purple-100 p-1 rounded-full">
+                              <BookOpen className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-purple-900">{filteredNovelas.length}</div>
+                              <div className="text-xs text-purple-600">de {allNovelas.length} novelas</div>
+                            </div>
+                          </div>
+                        </div>
+                        {(searchTerm || selectedGenre || selectedYear) && (
+                          <div className="bg-white rounded-lg p-3 shadow-sm">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
+                              <span className="text-purple-700 text-sm font-bold">Filtros Activos</span>
+                            </div>
+                            <div className="text-xs text-purple-600 mt-1">
+                              {searchTerm && `Búsqueda: "${searchTerm}"`}
+                              {selectedGenre && ` • Género: ${selectedGenre}`}
+                              {selectedYear && ` • Año: ${selectedYear}`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {(searchTerm || selectedGenre || selectedYear || sortBy !== 'titulo' || sortOrder !== 'asc') && (
+                        <button
+                          onClick={clearFilters}
+                          className="bg-gradient-to-r from-red-100 to-pink-100 hover:from-red-200 hover:to-pink-200 text-red-700 px-6 py-3 rounded-xl transition-all duration-300 font-bold shadow-sm hover:shadow-md transform hover:scale-105 flex items-center space-x-2"
+                        >
+                          <X className="h-4 w-4" />
+                          <span>Limpiar Todo</span>
+                        </button>
                       )}
                     </div>
                     
-                    {(searchTerm || selectedGenre || selectedYear || sortBy !== 'titulo' || sortOrder !== 'asc') && (
-                      <button
-                        onClick={clearFilters}
-                        className="text-sm bg-purple-200 hover:bg-purple-300 text-purple-800 px-3 py-1 rounded-lg transition-colors"
-                      >
-                        Limpiar filtros
-                      </button>
+                    {/* Barra de progreso de filtrado */}
+                    {(searchTerm || selectedGenre || selectedYear) && (
+                      <div className="mt-4">
+                        <div className="flex justify-between text-xs text-purple-600 mb-1">
+                          <span>Resultados encontrados</span>
+                          <span>{Math.round((filteredNovelas.length / allNovelas.length) * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-purple-200 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${(filteredNovelas.length / allNovelas.length) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -586,7 +755,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                   </div>
                 </div>
 
-                {/* Resumen de totales */}
+                {/* Totals summary */}
                 {selectedNovelas.length > 0 && (
                   <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b border-gray-200">
                     <div className="flex items-center mb-4">
@@ -620,7 +789,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                       </div>
                       {totals.transferFee > 0 && (
                         <div className="text-sm text-orange-600 mt-2">
-                          Incluye ${totals.transferFee.toLocaleString()} CUP de recargo por transferencia
+                          Incluye ${totals.transferFee.toLocaleString()} CUP de recargo por transferencia ({transferFeePercentage}%)
                         </div>
                       )}
                     </div>
@@ -633,16 +802,16 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                       filteredNovelas.map((novela) => {
                       const isSelected = selectedNovelas.includes(novela.id);
                       const baseCost = novela.capitulos * novelPricePerChapter;
-                      const transferCost = Math.round(baseCost * 1.1);
+                      const transferCost = Math.round(baseCost * (1 + transferFeePercentage / 100));
                       const finalCost = novela.paymentType === 'transfer' ? transferCost : baseCost;
                       
                       return (
                         <div
                           key={novela.id}
-                          className={`p-4 rounded-xl border transition-all ${
+                          className={`p-4 rounded-xl border transition-all duration-300 transform hover:scale-[1.02] ${
                             isSelected 
-                              ? 'bg-purple-50 border-purple-300 shadow-md' 
-                              : 'bg-gray-50 border-gray-200 hover:bg-purple-25 hover:border-purple-200'
+                              ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300 shadow-lg ring-2 ring-purple-200' 
+                              : 'bg-white border-gray-200 hover:bg-gradient-to-r hover:from-purple-25 hover:to-pink-25 hover:border-purple-200 hover:shadow-md'
                           }`}
                         >
                           <div className="flex items-start space-x-4">
@@ -656,20 +825,20 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                             <div className="flex-1">
                               <div className="flex flex-col sm:flex-row sm:items-start justify-between space-y-3 sm:space-y-0">
                                 <div className="flex-1">
-                                  <p className="font-semibold text-gray-900 mb-2">{novela.titulo}</p>
+                                  <p className="font-semibold text-gray-900 mb-2 text-lg break-words">{novela.titulo}</p>
                                   <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-3">
-                                    <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                    <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
                                       {novela.genero}
                                     </span>
-                                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
                                       {novela.capitulos} capítulos
                                     </span>
-                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                                       {novela.año}
                                     </span>
                                   </div>
                                   
-                                  {/* Selector de tipo de pago */}
+                                  {/* Payment type selector */}
                                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                                     <span className="text-sm font-medium text-gray-700">Tipo de pago:</span>
                                     <div className="flex space-x-2">
@@ -693,7 +862,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                                         }`}
                                       >
                                         <CreditCard className="h-3 w-3 inline mr-1" />
-                                        Transferencia (+10%)
+                                        Transferencia (+{transferFeePercentage}%)
                                       </button>
                                     </div>
                                   </div>
@@ -713,7 +882,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                                     </div>
                                   )}
                                   <div className="text-xs text-gray-500 mt-1">
-                                    $${novelPricePerChapter} CUP × {novela.capitulos} cap.
+                                    ${novelPricePerChapter} CUP × {novela.capitulos} cap.
                                   </div>
                                 </div>
                               </div>
@@ -732,12 +901,16 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
                           No se encontraron novelas
                         </h3>
-                        <p className="text-gray-600 mb-4">
-                          No hay novelas que coincidan con los filtros seleccionados.
-                        </p>
+                        <div className="text-gray-600 mb-4">
+                          {searchTerm ? (
+                            <p>No se encontraron novelas que contengan "<span className="font-semibold text-purple-600">{searchTerm}</span>" en el título.</p>
+                          ) : (
+                            <p>No hay novelas que coincidan con los filtros seleccionados.</p>
+                          )}
+                        </div>
                         <button
                           onClick={clearFilters}
-                          className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
                         >
                           Limpiar filtros
                         </button>
