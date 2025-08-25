@@ -97,7 +97,7 @@ export function PriceCard({ type, selectedSeasons = [], episodeCount = 0, isAnim
         
         {type === 'tv' && selectedSeasons.length > 0 && (
           <div className="text-xs text-green-600 text-center bg-green-100 rounded-lg p-2">
-            ${Math.round(price / selectedSeasons.length).toLocaleString()} CUP por temporada (efectivo)
+            ${(price / selectedSeasons.length).toLocaleString()} CUP por temporada (efectivo)
           </div>
         )}
       </div>
