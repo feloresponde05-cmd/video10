@@ -264,6 +264,7 @@ export function AdminPanel() {
   const [editingNovel, setEditingNovel] = useState<Novel | null>(null);
   const [showAddZoneForm, setShowAddZoneForm] = useState(false);
   const [showAddNovelForm, setShowAddNovelForm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{type: 'zone' | 'novel', id: number, name: string} | null>(null);
 
   // Form states
   const [priceForm, setPriceForm] = useState<PriceConfig>(state.prices);
@@ -323,6 +324,38 @@ export function AdminPanel() {
   const startEditNovel = (novel: Novel) => {
     setEditingNovel(novel);
     setNovelForm({ titulo: novel.titulo, genero: novel.genero, capitulos: novel.capitulos, año: novel.año, descripcion: novel.descripcion || '', active: novel.active });
+    setShowAddNovelForm(false);
+  };
+
+  const cancelEditZone = () => {
+    setEditingZone(null);
+    setZoneForm({ name: '', cost: 0, active: true });
+    setShowAddZoneForm(false);
+  };
+
+  const cancelEditNovel = () => {
+    setEditingNovel(null);
+    setNovelForm({ titulo: '', genero: '', capitulos: 0, año: new Date().getFullYear(), descripcion: '', active: true });
+    setShowAddNovelForm(false);
+  };
+
+  const handleDeleteZone = (zone: DeliveryZone) => {
+    setConfirmDelete({ type: 'zone', id: zone.id, name: zone.name });
+  };
+
+  const handleDeleteNovel = (novel: Novel) => {
+    setConfirmDelete({ type: 'novel', id: novel.id, name: novel.titulo });
+  };
+
+  const confirmDeleteAction = () => {
+    if (confirmDelete) {
+      if (confirmDelete.type === 'zone') {
+        deleteDeliveryZone(confirmDelete.id);
+      } else {
+        deleteNovel(confirmDelete.id);
+      }
+      setConfirmDelete(null);
+    }
   };
 
   const renderDashboard = () => (
@@ -583,9 +616,7 @@ export function AdminPanel() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowAddZoneForm(false);
-                  setEditingZone(null);
-                  setZoneForm({ name: '', cost: 0, active: true });
+                  cancelEditZone();
                 }}
                 className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
               >
@@ -624,12 +655,14 @@ export function AdminPanel() {
                   <button
                     onClick={() => startEditZone(zone)}
                     className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar zona"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => deleteDeliveryZone(zone.id)}
+                    onClick={() => handleDeleteZone(zone)}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Eliminar zona"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -756,9 +789,7 @@ export function AdminPanel() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowAddNovelForm(false);
-                  setEditingNovel(null);
-                  setNovelForm({ titulo: '', genero: '', capitulos: 0, año: new Date().getFullYear(), descripcion: '', active: true });
+                  cancelEditNovel();
                 }}
                 className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
               >
@@ -800,12 +831,14 @@ export function AdminPanel() {
                   <button
                     onClick={() => startEditNovel(novel)}
                     className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar novela"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => deleteNovel(novel.id)}
+                    onClick={() => handleDeleteNovel(novel)}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Eliminar novela"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -1047,6 +1080,62 @@ export function AdminPanel() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Confirmación de Eliminación */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in duration-300">
+            <div className="bg-gradient-to-r from-red-500 to-pink-500 p-6 text-white rounded-t-2xl">
+              <div className="flex items-center">
+                <div className="bg-white/20 p-3 rounded-xl mr-4">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Confirmar Eliminación</h3>
+                  <p className="text-sm opacity-90">Esta acción no se puede deshacer</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-gray-700 mb-6">
+                ¿Estás seguro de que deseas eliminar {confirmDelete.type === 'zone' ? 'la zona' : 'la novela'}{' '}
+                <span className="font-semibold text-gray-900">"{confirmDelete.name}"</span>?
+              </p>
+              
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                <div className="flex items-center">
+                  <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
+                  <div>
+                    <p className="text-red-800 font-medium text-sm">Advertencia</p>
+                    <p className="text-red-700 text-sm">
+                      {confirmDelete.type === 'zone' 
+                        ? 'Esta zona se eliminará permanentemente del sistema y no estará disponible para nuevos pedidos.'
+                        : 'Esta novela se eliminará permanentemente del catálogo y no estará disponible para los usuarios.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDeleteAction}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white rounded-xl transition-all font-medium"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

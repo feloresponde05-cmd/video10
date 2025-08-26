@@ -87,8 +87,8 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     { id: 50, titulo: "La Herencia", genero: "Drama/Romance", capitulos: 74, año: 2022 }
   ];
 
-  // Combine admin novels with default novels - real-time sync
-  const allNovelas = [...defaultNovelas, ...adminNovels.map(novel => ({
+  // Combine admin novels with default novels - real-time sync with active filter
+  const allNovelas = [...defaultNovelas, ...adminNovels.filter(novel => novel.active).map(novel => ({
     id: novel.id,
     titulo: novel.titulo,
     genero: novel.genero,
@@ -222,7 +222,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     listText += "💵 PRECIOS EN EFECTIVO:\n";
     listText += "═══════════════════════════════════\n\n";
     
-    allNovelas.forEach((novela, index) => {
+    allNovelas.filter(novela => novela.id <= 50 || (adminNovels.find(n => n.id === novela.id)?.active !== false)).forEach((novela, index) => {
       const baseCost = novela.capitulos * novelPricePerChapter;
       listText += `${index + 1}. ${novela.titulo}\n`;
       listText += `   📺 Género: ${novela.genero}\n`;
@@ -234,7 +234,7 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     listText += `\n🏦 PRECIOS CON TRANSFERENCIA BANCARIA (+${transferFeePercentage}%):\n`;
     listText += "═══════════════════════════════════\n\n";
     
-    allNovelas.forEach((novela, index) => {
+    allNovelas.filter(novela => novela.id <= 50 || (adminNovels.find(n => n.id === novela.id)?.active !== false)).forEach((novela, index) => {
       const baseCost = novela.capitulos * novelPricePerChapter;
       const transferCost = Math.round(baseCost * (1 + transferFeePercentage / 100));
       const recargo = transferCost - baseCost;
@@ -250,12 +250,13 @@ export function NovelasModal({ isOpen, onClose }: NovelasModalProps) {
     listText += "\n📊 RESUMEN DE COSTOS:\n";
     listText += "═══════════════════════════════════\n\n";
     
-    const totalCapitulos = allNovelas.reduce((sum, novela) => sum + novela.capitulos, 0);
-    const totalEfectivo = allNovelas.reduce((sum, novela) => sum + (novela.capitulos * novelPricePerChapter), 0);
-    const totalTransferencia = allNovelas.reduce((sum, novela) => sum + Math.round((novela.capitulos * novelPricePerChapter) * (1 + transferFeePercentage / 100)), 0);
+    const activeNovelas = allNovelas.filter(novela => novela.id <= 50 || (adminNovels.find(n => n.id === novela.id)?.active !== false));
+    const totalCapitulos = activeNovelas.reduce((sum, novela) => sum + novela.capitulos, 0);
+    const totalEfectivo = activeNovelas.reduce((sum, novela) => sum + (novela.capitulos * novelPricePerChapter), 0);
+    const totalTransferencia = activeNovelas.reduce((sum, novela) => sum + Math.round((novela.capitulos * novelPricePerChapter) * (1 + transferFeePercentage / 100)), 0);
     const totalRecargo = totalTransferencia - totalEfectivo;
     
-    listText += `📊 Total de novelas: ${allNovelas.length}\n`;
+    listText += `📊 Total de novelas: ${activeNovelas.length}\n`;
     listText += `📊 Total de capítulos: ${totalCapitulos.toLocaleString()}\n\n`;
     listText += `💵 CATÁLOGO COMPLETO EN EFECTIVO:\n`;
     listText += `   💰 Costo total: ${totalEfectivo.toLocaleString()} CUP\n\n`;

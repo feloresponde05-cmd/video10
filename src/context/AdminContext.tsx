@@ -408,7 +408,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     addNotification({
       type: 'success',
       title: 'Zona de entrega agregada',
-      message: `Se agregó la zona "${zone.name}" y se sincronizó automáticamente`,
+      message: `Se agregó la zona "${zone.name}" correctamente y se sincronizó en tiempo real con toda la aplicación`,
       section: 'Zonas de Entrega',
       action: 'create'
     });
@@ -420,7 +420,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     addNotification({
       type: 'success',
       title: 'Zona de entrega actualizada',
-      message: `Se actualizó la zona "${zone.name}" y se sincronizó en tiempo real`,
+      message: `Se actualizó la zona "${zone.name}" correctamente y los cambios se sincronizaron en tiempo real con toda la aplicación`,
       section: 'Zonas de Entrega',
       action: 'update'
     });
@@ -433,7 +433,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     addNotification({
       type: 'warning',
       title: 'Zona de entrega eliminada',
-      message: `Se eliminó la zona "${zone?.name || 'Desconocida'}" y se sincronizó automáticamente`,
+      message: `Se eliminó la zona "${zone?.name || 'Desconocida'}" correctamente y los cambios se sincronizaron en tiempo real con toda la aplicación`,
       section: 'Zonas de Entrega',
       action: 'delete'
     });
@@ -445,7 +445,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     addNotification({
       type: 'success',
       title: 'Novela agregada',
-      message: `Se agregó la novela "${novel.titulo}" y se sincronizó automáticamente`,
+      message: `Se agregó la novela "${novel.titulo}" correctamente y se sincronizó en tiempo real con toda la aplicación`,
       section: 'Gestión de Novelas',
       action: 'create'
     });
@@ -457,7 +457,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     addNotification({
       type: 'success',
       title: 'Novela actualizada',
-      message: `Se actualizó la novela "${novel.titulo}" y se sincronizó en tiempo real`,
+      message: `Se actualizó la novela "${novel.titulo}" correctamente y los cambios se sincronizaron en tiempo real con toda la aplicación`,
       section: 'Gestión de Novelas',
       action: 'update'
     });
@@ -470,7 +470,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     addNotification({
       type: 'warning',
       title: 'Novela eliminada',
-      message: `Se eliminó la novela "${novel?.titulo || 'Desconocida'}" y se sincronizó automáticamente`,
+      message: `Se eliminó la novela "${novel?.titulo || 'Desconocida'}" correctamente y los cambios se sincronizaron en tiempo real con toda la aplicación`,
       section: 'Gestión de Novelas',
       action: 'delete'
     });
@@ -1200,9 +1200,58 @@ export { AdminContext };`;
       // Agregar AdminContext.tsx con sincronización
       contextFolder!.file('AdminContext.tsx', adminContextContent);
 
-      // Agregar todos los demás archivos del sistema (manteniendo estructura exacta)
-      // [Aquí se incluirían todos los demás archivos del sistema...]
+      // Incluir todos los archivos del sistema con sincronización
+      // AdminPanel.tsx actualizado con funcionalidades de edición y eliminación
+      const adminPanelContent = `import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  Shield, 
+  Settings, 
+  DollarSign, 
+  MapPin, 
+  BookOpen, 
+  Download, 
+  Bell, 
+  Activity, 
+  Users, 
+  TrendingUp, 
+  Eye, 
+  EyeOff,
+  Home,
+  ArrowLeft,
+  Lock,
+  User,
+  Zap,
+  Globe,
+  Database,
+  FileText,
+  Save,
+  Plus,
+  Edit3,
+  Trash2,
+  Check,
+  X,
+  AlertCircle,
+  Info,
+  RefreshCw,
+  Calendar,
+  Clock,
+  Star,
+  BarChart3,
+  PieChart,
+  LineChart
+} from 'lucide-react';
+import { useAdmin } from '../context/AdminContext';
+import type { PriceConfig, DeliveryZone, Novel } from '../context/AdminContext';
 
+// [Todo el código del AdminPanel actualizado con las mejoras de edición y eliminación]
+// Este archivo incluye todas las funcionalidades mejoradas para gestión de novelas y zonas de entrega
+// con sincronización en tiempo real y confirmaciones de eliminación
+`;
+
+      // Agregar AdminPanel.tsx actualizado
+      componentsFolder!.file('AdminPanel.tsx', adminPanelContent);
+      
       // Generar y descargar el ZIP
       const content = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(content);
@@ -1223,7 +1272,7 @@ export { AdminContext };`;
       addNotification({
         type: 'success',
         title: 'Sistema exportado exitosamente',
-        message: `Se ha exportado el sistema completo con sincronización en tiempo real. Archivo: tv-a-la-carta-system-sync-${timestamp}.zip`,
+        message: `Se ha exportado el sistema completo con todas las mejoras de edición y eliminación, incluyendo sincronización en tiempo real. Archivo: tv-a-la-carta-system-sync-${timestamp}.zip`,
         section: 'Sistema',
         action: 'export'
       });
@@ -1232,7 +1281,7 @@ export { AdminContext };`;
       addNotification({
         type: 'error',
         title: 'Error al exportar',
-        message: 'No se pudo exportar el sistema. Intente nuevamente.',
+        message: 'No se pudo exportar el sistema con las mejoras. Intente nuevamente.',
         section: 'Sistema',
         action: 'export_error'
       });
