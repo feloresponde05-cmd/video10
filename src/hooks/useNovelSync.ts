@@ -35,26 +35,31 @@ export function useNovelSync() {
       try {
         setLoading(true);
         
-        // Intentar cargar desde múltiples fuentes
-        const sources = [
-          localStorage.getItem('admin_system_state'),
-          localStorage.getItem('system_config')
-        ];
-
         let loadedNovels: Novel[] = [];
 
-        for (const source of sources) {
-          if (source) {
-            try {
-              const data = JSON.parse(source);
-              if (data.novels && Array.isArray(data.novels)) {
-                loadedNovels = data.novels;
-                break;
-              }
-            } catch (parseError) {
-              console.warn('Error parsing source:', parseError);
+        // Intentar cargar desde múltiples fuentes en orden de prioridad
+        try {
+          const adminConfig = localStorage.getItem('system_config');
+          if (adminConfig) {
+            const config = JSON.parse(adminConfig);
+            if (config.novels && Array.isArray(config.novels)) {
+              loadedNovels = config.novels;
             }
           }
+          
+          // Si no hay novelas en system_config, intentar admin_system_state
+          if (loadedNovels.length === 0) {
+            const adminState = localStorage.getItem('admin_system_state');
+            if (adminState) {
+              const state = JSON.parse(adminState);
+              if (state.novels && Array.isArray(state.novels)) {
+                loadedNovels = state.novels;
+              }
+            }
+          }
+        } catch (parseError) {
+          console.warn('Error parsing novels data:', parseError);
+          loadedNovels = [];
         }
 
         categorizeNovels(loadedNovels);
