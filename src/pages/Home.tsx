@@ -280,14 +280,18 @@ export function Home() {
           </div>
           
           {/* Novels Trending Section */}
-          {novelTrendingContent.length > 0 && (
+          {(novelTrendingContent.length > 0 || adminState.novels?.filter(novel => novel.estado === trendingTimeWindow === 'day' ? 'transmision' : 'finalizada').length > 0) && (
             <div className="mt-8">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                 <Library className="mr-2 h-5 w-5 text-pink-500" />
                 📺 Novelas {trendingTimeWindow === 'day' ? 'En Transmisión' : 'Finalizadas Recientemente'}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {novelTrendingContent.map((novel) => (
+                {(adminState.novels?.filter(novel => 
+                  trendingTimeWindow === 'day' 
+                    ? novel.estado === 'transmision' 
+                    : novel.estado === 'finalizada'
+                ) || []).slice(0, 12).map((novel) => (
                   <Link
                     to={`/novel/${novel.id}`}
                     key={`novel-trending-${novel.id}`}
@@ -388,10 +392,16 @@ export function Home() {
                   Ver Catálogo Completo
                 </button>
                 <p className="text-sm text-gray-600 mt-3 max-w-md mx-auto">
-                  {trendingTimeWindow === 'day' 
-                    ? `${novelTrendingContent.length} novelas actualmente en transmisión` 
-                    : `${novelTrendingContent.length} novelas finalizadas recientemente`
-                  }
+                  {(() => {
+                    const filteredNovels = adminState.novels?.filter(novel => 
+                      trendingTimeWindow === 'day' 
+                        ? novel.estado === 'transmision' 
+                        : novel.estado === 'finalizada'
+                    ) || [];
+                    return trendingTimeWindow === 'day' 
+                      ? `${filteredNovels.length} novelas actualmente en transmisión` 
+                      : `${filteredNovels.length} novelas finalizadas recientemente`;
+                  })()}
                 </p>
                 <div className="mt-4 text-xs text-gray-500 bg-gray-50 rounded-lg p-3 max-w-lg mx-auto">
                   <span className="font-medium">💡 Tip:</span> Las novelas se encargan completas. 
@@ -422,7 +432,10 @@ export function Home() {
           
           {adminState.novels && adminState.novels.length > 0 ? (
             <>
-              {adminState.novels.filter(novel => novel.estado === 'transmision').length > 0 ? (
+              {(() => {
+                const novelasEnTransmision = adminState.novels.filter(novel => novel.estado === 'transmision');
+                return novelasEnTransmision.length > 0;
+              })() ? (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     {adminState.novels
@@ -566,7 +579,10 @@ export function Home() {
           
           {adminState.novels && adminState.novels.length > 0 ? (
             <>
-              {adminState.novels.filter(novel => novel.estado === 'finalizada').length > 0 ? (
+              {(() => {
+                const novelasFinalizadas = adminState.novels.filter(novel => novel.estado === 'finalizada');
+                return novelasFinalizadas.length > 0;
+              })() ? (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     {adminState.novels
@@ -776,7 +792,10 @@ export function Home() {
           
           {adminState.novels && adminState.novels.length > 0 ? (
             <>
-              {adminState.novels.filter(novel => novel.estado === 'finalizada').length > 0 ? (
+              {(() => {
+                const novelasFinalizadas = adminState.novels.filter(novel => novel.estado === 'finalizada');
+                return novelasFinalizadas.length > 0;
+              })() ? (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     {adminState.novels

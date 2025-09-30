@@ -48,6 +48,7 @@ export function NovelCard({ novel }: NovelCardProps) {
 
   const getCountryFlag = (country: string) => {
     const flags: { [key: string]: string } = {
+      'Cuba': '🇨🇺',
       'Turquía': '🇹🇷',
       'México': '🇲🇽',
       'Brasil': '🇧🇷',
@@ -64,6 +65,25 @@ export function NovelCard({ novel }: NovelCardProps) {
       'Japón': '🇯🇵',
       'China': '🇨🇳',
       'Rusia': '🇷🇺'
+      'Venezuela': '🇻🇪',
+      'Chile': '🇨🇱',
+      'Perú': '🇵🇪',
+      'Ecuador': '🇪🇨',
+      'Uruguay': '🇺🇾',
+      'Paraguay': '🇵🇾',
+      'Bolivia': '🇧🇴',
+      'Panamá': '🇵🇦',
+      'Costa Rica': '🇨🇷',
+      'Nicaragua': '🇳🇮',
+      'Honduras': '🇭🇳',
+      'Guatemala': '🇬🇹',
+      'El Salvador': '🇸🇻',
+      'República Dominicana': '🇩🇴',
+      'Puerto Rico': '🇵🇷',
+      'Canadá': '🇨🇦',
+      'Australia': '🇦🇺',
+      'Nueva Zelanda': '🇳🇿',
+      'Sudáfrica': '🇿🇦',
     };
     return flags[country] || '🌍';
   };

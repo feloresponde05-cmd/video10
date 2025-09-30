@@ -217,6 +217,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 6,
       "año": 2025,
       "descripcion": "Balaban, un soldado del ejército jenízaro, se va a vivir a Moena, en el norte de Italia, después de la Batalla de Viena en 1683 y lucha por los derechos de la gente local.",
+      "pais": "Turquía",
+      "estado": "finalizada",
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-09-20T07:35:27.323Z"
     },
@@ -227,6 +229,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 20,
       "año": 2024,
       "descripcion": "Aydan, campeona de apnea, se incorpora a una poderosa empresa familiar. Su presencia saca a la luz oscuros secretos y luchas de poder. Debe sortear la influencia corruptora de la riqueza sin dejar de ser fiel a sí misma.",
+      "pais": "Turquía",
+      "estado": "finalizada",
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-09-20T07:38:27.922Z"
     },
@@ -237,6 +241,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 8,
       "año": 2025,
       "descripcion": "Un joven y apuesto príncipe conoce a una chica que dirige el primer hotel de lujo de la India. El encuentro de estos dos mundos, la aristocracia en decadencia y el capitalismo desenfrenado, genera un torbellino de ambición, conflicto y romance.",
+      "pais": "India",
+      "estado": "finalizada",
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-09-20T07:41:35.857Z"
     },
@@ -247,6 +253,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 30,
       "año": 2024,
       "descripcion": "La historia de una niña con autismo que se convierte en un genio de la tecnología.",
+      "pais": "México",
+      "estado": "finalizada",
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-09-20T07:41:00.465Z"
     },
@@ -257,6 +265,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 120,
       "año": 2024,
       "descripcion": "La vida de una niña se pone patas arriba cuando le roban el riñón durante un violento secuestro, orquestado por su padre biológico rico que necesita un donante.",
+      "pais": "Turquía",
+      "estado": "transmision",
       "createdAt": "2025-01-01T00:00:00.000Z",
       "updatedAt": "2025-09-21T08:59:08.653Z"
     },
@@ -266,6 +276,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 80,
       "año": 2023,
       "descripcion": "El argumento propuesto por los guionistas Amílcar Salatti, Yoel Infante y María Claudia Figueroa parte de la historia de tres parejas de jóvenes que acuden a un concierto de música electrónica y sufren un accidente, lo que detona sucesos posteriores.",
+      "pais": "Colombia",
+      "estado": "finalizada",
       "id": 1758354384106,
       "createdAt": "2025-09-20T07:46:24.106Z",
       "updatedAt": "2025-09-20T07:46:24.106Z"
@@ -276,6 +288,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 90,
       "año": 2025,
       "descripcion": "Estrella, una madre soltera, regresa al pequeño pueblo pesquero de su juventud después de la muerte de su padre. Se enamora de Fabián, un padre viudo y enfrenta un huracán de problemas que ponen en riesgo el bienestar de sus familias.",
+      "pais": "México",
+      "estado": "transmision",
       "id": 1758445394324,
       "createdAt": "2025-09-21T09:03:14.324Z",
       "updatedAt": "2025-09-21T09:03:14.324Z"
@@ -286,6 +300,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 64,
       "año": 2017,
       "descripcion": "Una doctora que dedica su vida a salvar vidas es capturada por un hombre que se dedica a quitarlas.",
+      "pais": "Turquía",
+      "estado": "finalizada",
       "id": 1758445503268,
       "createdAt": "2025-09-21T09:05:03.268Z",
       "updatedAt": "2025-09-21T09:05:03.268Z"
@@ -296,6 +312,8 @@ const EMBEDDED_CONFIG = {
       "capitulos": 60,
       "año": 2023,
       "descripcion": "Amor Perfecto cuenta la historia de Marê (Camila Queiroz), una niña rica, estudiante de Administración y Finanzas, que se enamora del joven doctor Orlando (Diogo Almeida). Marê está de novia con Gaspar (Thiago Lacerda) pero dejará de lado los deseos de su padre para vivir ese amor. Sin embargo, la trágica muerte de su progenitor y los manejos de su madrastra para inculparla llevan a Marê a una prisión injusta.",
+      "pais": "Brasil",
+      "estado": "finalizada",
       "id": 1758445741890,
       "createdAt": "2025-09-21T09:09:01.890Z",
       "updatedAt": "2025-09-21T09:09:01.890Z"
