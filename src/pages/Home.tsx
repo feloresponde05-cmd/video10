@@ -497,12 +497,41 @@ export function Home() {
                       const dateB = new Date(b.createdAt || 0).getTime();
                       return dateB - dateA; // Las más recientes primero
                     })
-                    .map((novel) => (
-                      <Link
-                        to={`/novel/${novel.id}`}
-                        key={`novel-finished-${novel.id}`}
-                        className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-gray-200 hover:border-green-300 flex-shrink-0 w-40 sm:w-44 md:w-48 lg:w-52"
-                      >
+                    .map((novel) => {
+                      const { addNovel, removeItem, isInCart } = useCart();
+                      const inCart = isInCart(novel.id);
+
+                      const handleAddToCart = (e: React.MouseEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (inCart) {
+                          removeItem(novel.id);
+                        } else {
+                          const novelCartItem = {
+                            id: novel.id,
+                            title: novel.titulo,
+                            type: 'novel' as const,
+                            genre: novel.genero,
+                            chapters: novel.capitulos,
+                            year: novel.año,
+                            description: novel.descripcion,
+                            country: novel.pais,
+                            status: novel.estado,
+                            image: novel.imagen,
+                            paymentType: 'cash' as const,
+                            pricePerChapter: currentPrices.novelPricePerChapter,
+                            totalPrice: novel.capitulos * currentPrices.novelPricePerChapter
+                          };
+                          addNovel(novelCartItem);
+                        }
+                      };
+
+                      return (
+                        <div
+                          key={`novel-finished-${novel.id}`}
+                          className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-green-300 flex-shrink-0 w-40 sm:w-44 md:w-48 lg:w-52"
+                        >
                           <div className="relative">
                             <img
                               src={novel.imagen || (() => {
@@ -550,7 +579,7 @@ export function Home() {
                             <h4 className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 mb-2 group-hover:text-green-600 transition-colors leading-tight">
                               {novel.titulo}
                             </h4>
-                            <div className="text-center bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-2 border border-green-200">
+                            <div className="text-center bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-2 mb-2 border border-green-200">
                               <span className="text-xs sm:text-sm font-bold text-green-600">
                                 ${(novel.capitulos * currentPrices.novelPricePerChapter).toLocaleString()}
                               </span>
@@ -558,9 +587,42 @@ export function Home() {
                                 {novel.capitulos} cap.
                               </div>
                             </div>
+
+                            {/* Botones de acción */}
+                            <div className="space-y-1">
+                              <Link
+                                to={`/novel/${novel.id}`}
+                                className="w-full px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border border-green-300 text-green-600 hover:bg-green-50 flex items-center justify-center"
+                              >
+                                <Play className="mr-1 h-3 w-3" />
+                                Ver Detalles
+                              </Link>
+
+                              <button
+                                onClick={handleAddToCart}
+                                className={`w-full px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center ${
+                                  inCart
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                }`}
+                              >
+                                {inCart ? (
+                                  <>
+                                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                                    En Carrito
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus className="mr-1 h-3 w-3" />
+                                    Agregar
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </div>
-                      </Link>
-                    ))}
+                        </div>
+                      );
+                    })}
                 </NetflixSection>
               ) : (
                 <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
